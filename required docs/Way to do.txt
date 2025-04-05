@@ -1,0 +1,71 @@
+Technology for Al
+• Ollama based on-prem LLMs
+• Custom tools for agents- API, web srapper, ML model etc..
+• Ollama based embedding models
+• SQLite DB
+• Multi agent framework
+
+
+Ollama
+Step-by-Step Guide to Using Ollama with Python:
+System Requirements
+OS
+Processor
+RAM
+Storage
+Python Version
+Windows
+x86_64 (Intel/AMD)
+8GB (16GB
+recommended)
+10GB+ free space
+3.8 or higher
+macOS
+Apple Silicon (M1/M2) or Intel x86_64
+8GB (16GB
+recommended)
+10GB+ free space
+3.8 or higher
+Linux
+x86_64 or ARM64 CPU
+8GB (16GB
+recommended)
+10GB+ free space
+3.8 or
+
+
+
+
+
+
+
+Ollama
+Here are a few recommended models:
+
+
+Model Name
+Description
+TinyLlama-1.1B
+Very lightweight, fast, good for quick demand forecasting.
+Gemma-2B
+Optimized for efficiency, handles structured data.
+Phi-2
+Great for reasoning and small-scale predictions.
+Flan-T5 Small
+Good for fine-tuning and specific NLP tasks.
+DistilBERT
+Super compact, great for text classification and embeddings.
+To explore more models, visit: https://ollama.com/library.
+
+
+
+
+
+
+
+We are looking for following from you:
+• Agents' interaction design
+• Technical approach slide
+• Code structure
+• Demo Video
+• Final presentation which includes Problem statement, Final approach, Team, Solution, Benefit and Impact.

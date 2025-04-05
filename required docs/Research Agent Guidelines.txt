@@ -1,0 +1,18 @@
+Research Agent Guidelines
+Guidelines for Ethical Web Scraping
+When using web scraping to gather data for personalizing e-commerce experiences, it is important to follow ethical guidelines to respect the privacy and rights of website owners, users, and the public. Here are some key ethical principles to follow:
+1. Respect Website Terms of Service
+• Always review and adhere to a website's Terms of Service (ToS) and robots.txt files to ensure that web scraping is allowed. If the site explicitly prohibits scraping in its terms, avoid scraping that site.
+2. Data Privacy and User Consent
+• Ensure that the data you collect does not violate user privacy or data protection regulations such as GDPR (General Data Protection Regulation) or CCPA (California Consumer
+Privacy Act).
+• If personal data is scraped, avoid using sensitive information (like emails, passwords, etc.) unless explicit consent is given.
+3. Scraping Frequency and Load
+• Do not overwhelm the website's server by sending too many requests in a short period. Scrape at a reasonable frequency to avoid causing performance issues or downtime.
+• Use appropriate delays between requests to avoid overloading the server and to minimize impact on the website's normal operation.
+4. Data Anonymization
+• When collecting personal data, ensure that any personally identifiable information (PII) is either not scraped or is anonymized to prevent misuse or breaches of privacy.
+• Avoid scraping data that can directly identify individuals
+5. Fair Use and Avoiding Copyright Violation
+• Avoid scraping copyrighted content, especially if it is not in the public domain, without permission. For example, scraping product descriptions or images may violate intellectual property rights.
+• Ensure that the data you scrape is used fairly and that it doesn't infringe on copyright laws or harm the website owners' business model.
