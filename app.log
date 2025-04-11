@@ -1,0 +1,369 @@
+2025-04-11 15:50:30,252 - __main__ - INFO - Starting application...
+2025-04-11 15:50:30,521 - TalentSpotter.database - INFO - Database module loaded
+2025-04-11 15:50:30,530 - database - INFO - Database module loaded
+2025-04-11 15:51:00,150 - __main__ - INFO - Starting application...
+2025-04-11 15:51:00,403 - TalentSpotter.database - INFO - Database module loaded
+2025-04-11 15:51:00,412 - database - INFO - Database module loaded
+2025-04-11 15:51:24,549 - __main__ - INFO - Starting application...
+2025-04-11 15:51:24,808 - TalentSpotter.database - INFO - Database module loaded
+2025-04-11 15:51:24,817 - database - INFO - Database module loaded
+2025-04-11 15:51:24,827 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,827 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_match_scores_job_id ON match_scores(job_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_match_scores_candidate_id ON match_scores(candidate_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlists_job_id ON shortlists(job_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlists_status ON shortlists(status)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_shortlist_id ON shortlist_candidates(shortlist_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_candidate_id ON shortlist_candidates(candidate_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_shortlist_id ON interviews(shortlist_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)
+Error: The current Flask app is not registered with this 'SQLAlchemy' instance. Did you forget to call 'init_app', or did you create multiple 'SQLAlchemy' instances?
+2025-04-11 15:51:24,828 - database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 15:52:03,865 - __main__ - INFO - Starting application...
+2025-04-11 15:52:04,157 - TalentSpotter.database - INFO - Database module loaded
+2025-04-11 15:52:04,166 - database - INFO - Database module loaded
+2025-04-11 15:56:54,333 - __main__ - INFO - Starting application...
+2025-04-11 15:58:34,265 - __main__ - INFO - Starting application...
+2025-04-11 15:59:02,312 - __main__ - INFO - Starting application...
+2025-04-11 16:00:17,981 - __main__ - INFO - Starting application...
+2025-04-11 16:00:18,275 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such column: status
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:00:18,276 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such column: candidate_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:00:18,276 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such column: job_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:00:18,276 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:01:57,511 - __main__ - INFO - Starting application...
+2025-04-11 16:01:57,531 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such column: status
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:01:57,532 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such column: candidate_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:01:57,532 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such column: job_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:01:57,532 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:01:57,745 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:01:57,746 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:01:57,746 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:01:57,943 - __main__ - INFO - Starting application...
+2025-04-11 16:01:57,957 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such column: status
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:01:57,958 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such column: candidate_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:01:57,958 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such column: job_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:01:57,958 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:01:57,985 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:01:57,991 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:02:53,145 - __main__ - INFO - Starting application...
+2025-04-11 16:02:53,165 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such column: status
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:02:53,165 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such column: candidate_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:02:53,166 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such column: job_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:02:53,166 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:02:53,208 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:02:53,208 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:02:53,209 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:02:53,411 - __main__ - INFO - Starting application...
+2025-04-11 16:02:53,427 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such column: status
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:02:53,428 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such column: candidate_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:02:53,428 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such column: job_id
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:02:53,429 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:02:53,458 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:02:53,469 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:03:09,819 - __main__ - INFO - Application initialized
+2025-04-11 16:03:09,894 - __main__ - INFO - Application initialized
+2025-04-11 16:04:55,300 - __main__ - INFO - Starting application...
+2025-04-11 16:04:55,322 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such table: main.candidates
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,322 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_match_scores_job_id ON match_scores(job_id)
+Error: (sqlite3.OperationalError) no such table: main.match_scores
+[SQL: CREATE INDEX IF NOT EXISTS idx_match_scores_job_id ON match_scores(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,322 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_match_scores_candidate_id ON match_scores(candidate_id)
+Error: (sqlite3.OperationalError) no such table: main.match_scores
+[SQL: CREATE INDEX IF NOT EXISTS idx_match_scores_candidate_id ON match_scores(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,322 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlists_job_id ON shortlists(job_id)
+Error: (sqlite3.OperationalError) no such table: main.shortlists
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlists_job_id ON shortlists(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,322 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlists_status ON shortlists(status)
+Error: (sqlite3.OperationalError) no such table: main.shortlists
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlists_status ON shortlists(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_shortlist_id ON shortlist_candidates(shortlist_id)
+Error: (sqlite3.OperationalError) no such table: main.shortlist_candidates
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_shortlist_id ON shortlist_candidates(shortlist_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_candidate_id ON shortlist_candidates(candidate_id)
+Error: (sqlite3.OperationalError) no such table: main.shortlist_candidates
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_candidate_id ON shortlist_candidates(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_shortlist_id ON interviews(shortlist_id)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_shortlist_id ON interviews(shortlist_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,323 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:04:55,368 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:04:55,368 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:04:55,368 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:04:55,562 - __main__ - INFO - Starting application...
+2025-04-11 16:04:55,576 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)
+Error: (sqlite3.OperationalError) no such table: main.candidates
+[SQL: CREATE INDEX IF NOT EXISTS idx_candidates_status ON candidates(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,577 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_match_scores_job_id ON match_scores(job_id)
+Error: (sqlite3.OperationalError) no such table: main.match_scores
+[SQL: CREATE INDEX IF NOT EXISTS idx_match_scores_job_id ON match_scores(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,577 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_match_scores_candidate_id ON match_scores(candidate_id)
+Error: (sqlite3.OperationalError) no such table: main.match_scores
+[SQL: CREATE INDEX IF NOT EXISTS idx_match_scores_candidate_id ON match_scores(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,577 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlists_job_id ON shortlists(job_id)
+Error: (sqlite3.OperationalError) no such table: main.shortlists
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlists_job_id ON shortlists(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,577 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlists_status ON shortlists(status)
+Error: (sqlite3.OperationalError) no such table: main.shortlists
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlists_status ON shortlists(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,578 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_shortlist_id ON shortlist_candidates(shortlist_id)
+Error: (sqlite3.OperationalError) no such table: main.shortlist_candidates
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_shortlist_id ON shortlist_candidates(shortlist_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,578 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_candidate_id ON shortlist_candidates(candidate_id)
+Error: (sqlite3.OperationalError) no such table: main.shortlist_candidates
+[SQL: CREATE INDEX IF NOT EXISTS idx_shortlist_candidates_candidate_id ON shortlist_candidates(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,578 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_shortlist_id ON interviews(shortlist_id)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_shortlist_id ON interviews(shortlist_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,578 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_candidate_id ON interviews(candidate_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,578 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,579 - TalentSpotter.database.db_operations - WARNING - Warning executing index creation statement: CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)
+Error: (sqlite3.OperationalError) no such table: main.interviews
+[SQL: CREATE INDEX IF NOT EXISTS idx_interviews_status ON interviews(status)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-04-11 16:04:55,579 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:04:55,609 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:04:55,616 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:05:14,195 - __main__ - INFO - Application initialized
+2025-04-11 16:05:14,205 - __main__ - INFO - Application initialized
+2025-04-11 16:06:40,663 - __main__ - INFO - Starting application...
+2025-04-11 16:06:40,693 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:06:40,736 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:06:40,736 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:06:40,737 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:06:40,931 - __main__ - INFO - Starting application...
+2025-04-11 16:06:40,947 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:06:40,979 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:06:40,987 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:07:15,860 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:15] "[33mGET / HTTP/1.1[0m" 404 -
+2025-04-11 16:07:15,875 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:15] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-11 16:07:15,881 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:15] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png&s=zDBXW40JDMSovrOVs8iO HTTP/1.1[0m" 304 -
+2025-04-11 16:07:15,882 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:15] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-04-11 16:07:15,882 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:15] "[36mGET /?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-04-11 16:07:15,884 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:15] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-04-11 16:07:50,547 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:07:50] "[33mGET / HTTP/1.1[0m" 404 -
+2025-04-11 16:07:58,486 - __main__ - INFO - Application initialized
+2025-04-11 16:07:58,563 - __main__ - INFO - Application initialized
+2025-04-11 16:09:12,570 - __main__ - INFO - Starting application...
+2025-04-11 16:09:12,602 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:09:12,653 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:09:12,653 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:09:12,654 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:09:12,888 - __main__ - INFO - Starting application...
+2025-04-11 16:09:12,906 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:09:12,943 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:09:12,953 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:09:19,462 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:09:19,471 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:09:19,479 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:09:19] "GET / HTTP/1.1" 200 -
+2025-04-11 16:10:14,242 - __main__ - INFO - Starting application...
+2025-04-11 16:10:14,262 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:10:14,309 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:10:14,310 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:10:14,310 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:10:14,511 - __main__ - INFO - Starting application...
+2025-04-11 16:10:14,526 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:10:14,557 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:10:14,564 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:10:27,009 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:10:27,019 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:10:27,035 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:10:27] "GET / HTTP/1.1" 200 -
+2025-04-11 16:11:00,002 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:11:00,004 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:11:00,005 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:11:00] "GET / HTTP/1.1" 200 -
+2025-04-11 16:12:09,272 - __main__ - INFO - Starting application...
+2025-04-11 16:12:09,293 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:12:09,338 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:12:09,338 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:12:09,338 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:12:09,534 - __main__ - INFO - Starting application...
+2025-04-11 16:12:09,548 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:12:09,580 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:12:09,591 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:12:16,228 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:12:16,240 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:12:16,277 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:12:16] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-04-11 16:12:16,297 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:12:16] "[36mGET /?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-04-11 16:12:16,299 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:12:16] "[36mGET /?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-04-11 16:12:16,305 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:12:16] "GET /?__debugger__=yes&cmd=resource&f=console.png&s=OGpwq4dOihDRBfFV6wCY HTTP/1.1" 200 -
+2025-04-11 16:12:22,604 - __main__ - INFO - Application initialized
+2025-04-11 16:12:22,679 - __main__ - INFO - Application initialized
+2025-04-11 16:12:51,208 - __main__ - INFO - Starting application...
+2025-04-11 16:12:51,228 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:12:51,273 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:12:51,274 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:12:51,274 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:12:51,475 - __main__ - INFO - Starting application...
+2025-04-11 16:12:51,490 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:12:51,519 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:12:51,528 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:13:32,137 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:13:32,146 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:13:32,163 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:32] "GET / HTTP/1.1" 200 -
+2025-04-11 16:13:32,188 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:32] "GET /static/js/main.js HTTP/1.1" 200 -
+2025-04-11 16:13:32,188 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:32] "GET /static/css/styles.css HTTP/1.1" 200 -
+2025-04-11 16:13:32,188 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:32] "GET /static/css/rankings.css HTTP/1.1" 200 -
+2025-04-11 16:13:38,034 - TalentSpotter.routes.jobs - DEBUG - Loading job list page
+2025-04-11 16:13:38,060 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:38] "[35m[1mGET /jobs/ HTTP/1.1[0m" 500 -
+2025-04-11 16:13:38,071 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:38] "GET /jobs/?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-04-11 16:13:38,074 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:38] "GET /jobs/?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-04-11 16:13:38,083 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:38] "GET /jobs/?__debugger__=yes&cmd=resource&f=console.png&s=ftT6yMLVg8sGFzL7DMXX HTTP/1.1" 200 -
+2025-04-11 16:13:38,098 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:38] "GET /jobs/?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-04-11 16:13:50,101 - TalentSpotter.routes.candidates - DEBUG - Loading candidate list page
+2025-04-11 16:13:50,111 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:50] "[35m[1mGET /candidates/ HTTP/1.1[0m" 500 -
+2025-04-11 16:13:50,123 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:50] "GET /candidates/?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-04-11 16:13:50,124 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:50] "GET /candidates/?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-04-11 16:13:50,133 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:50] "GET /candidates/?__debugger__=yes&cmd=resource&f=console.png&s=ftT6yMLVg8sGFzL7DMXX HTTP/1.1" 200 -
+2025-04-11 16:13:50,158 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:13:50] "GET /candidates/?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-04-11 16:13:58,070 - __main__ - INFO - Application initialized
+2025-04-11 16:13:58,146 - __main__ - INFO - Application initialized
+2025-04-11 16:17:29,651 - __main__ - INFO - Starting application...
+2025-04-11 16:17:29,677 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:17:29,728 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:17:29,728 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:17:29,728 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:17:29,929 - __main__ - INFO - Starting application...
+2025-04-11 16:17:29,944 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:17:29,975 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:17:29,984 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:17:49,939 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:17:49,948 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:17:49,969 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:49] "GET / HTTP/1.1" 200 -
+2025-04-11 16:17:50,003 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:50] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-04-11 16:17:50,003 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:50] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2025-04-11 16:17:50,003 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:50] "[36mGET /static/css/rankings.css HTTP/1.1[0m" 304 -
+2025-04-11 16:17:51,962 - TalentSpotter.routes.jobs - DEBUG - Loading job list page
+2025-04-11 16:17:51,990 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:51] "[35m[1mGET /jobs/ HTTP/1.1[0m" 500 -
+2025-04-11 16:17:51,994 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:51] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1[0m" 304 -
+2025-04-11 16:17:51,995 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:51] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-04-11 16:17:51,996 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:51] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=console.png&s=ftT6yMLVg8sGFzL7DMXX HTTP/1.1[0m" 304 -
+2025-04-11 16:17:51,996 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:51] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-04-11 16:17:52,001 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:52] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-04-11 16:17:52,002 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:52] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-04-11 16:17:52,014 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:17:52] "GET /jobs/?__debugger__=yes&cmd=resource&f=console.png&s=Fjz1aew3IEy2DA3j8BmF HTTP/1.1" 200 -
+2025-04-11 16:17:59,045 - __main__ - INFO - Application initialized
+2025-04-11 16:17:59,119 - __main__ - INFO - Application initialized
+2025-04-11 16:19:06,448 - __main__ - INFO - Starting application...
+2025-04-11 16:19:06,479 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:19:06,527 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-04-11 16:19:06,527 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-04-11 16:19:06,528 - werkzeug - INFO -  * Restarting with stat
+2025-04-11 16:19:06,730 - __main__ - INFO - Starting application...
+2025-04-11 16:19:06,746 - TalentSpotter.database.db_operations - INFO - Database schema initialized successfully
+2025-04-11 16:19:06,779 - werkzeug - WARNING -  * Debugger is active!
+2025-04-11 16:19:06,788 - werkzeug - INFO -  * Debugger PIN: 136-090-044
+2025-04-11 16:19:10,154 - TalentSpotter.routes.main - DEBUG - Loading main dashboard
+2025-04-11 16:19:10,162 - TalentSpotter.database.db_operations - ERROR - Error getting database stats: score
+2025-04-11 16:19:10,179 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:10] "GET / HTTP/1.1" 200 -
+2025-04-11 16:19:10,207 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:10] "[36mGET /static/css/rankings.css HTTP/1.1[0m" 304 -
+2025-04-11 16:19:10,207 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:10] "[36mGET /static/css/styles.css HTTP/1.1[0m" 304 -
+2025-04-11 16:19:10,207 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:10] "[36mGET /static/js/main.js HTTP/1.1[0m" 304 -
+2025-04-11 16:19:12,290 - TalentSpotter.routes.jobs - DEBUG - Loading job list page
+2025-04-11 16:19:12,304 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:12] "[35m[1mGET /jobs/ HTTP/1.1[0m" 500 -
+2025-04-11 16:19:12,311 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:12] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-04-11 16:19:12,313 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:12] "[36mGET /jobs/?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-04-11 16:19:12,319 - werkzeug - INFO - 127.0.0.1 - - [11/Apr/2025 16:19:12] "GET /jobs/?__debugger__=yes&cmd=resource&f=console.png&s=RYbsFr7HuGlaaNw2wC1f HTTP/1.1" 200 -
+2025-04-11 16:19:18,113 - __main__ - INFO - Application initialized
+2025-04-11 16:19:18,187 - __main__ - INFO - Application initialized
+2025-04-11 16:21:22,020 - __main__ - INFO - Starting application...
