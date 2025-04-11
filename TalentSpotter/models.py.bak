@@ -1,0 +1,297 @@
+"""
+Database models for the recruitment system
+"""
+import json
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+
+db = SQLAlchemy()
+
+class JobDescription(db.Model):
+    """Model for job descriptions"""
+    __tablename__ = 'job_descriptions'
+    
+    jd_id = db.Column(db.Integer, primary_key=True)
+    job_title = db.Column(db.String(100), nullable=False)
+    department = db.Column(db.String(100))
+    required_experience = db.Column(db.Integer)
+    required_education = db.Column(db.Text)
+    required_skills = db.Column(db.Text)  # JSON as text
+    job_responsibilities = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='active')
+    
+    # Relationships
+    candidates = db.relationship('MatchScore', back_populates='job')
+    shortlists = db.relationship('Shortlist', back_populates='job')
+    interviews = db.relationship('Interview', back_populates='job')
+    applications = db.relationship('Application', back_populates='job')
+    
+    def __repr__(self):
+        return f'<JobDescription {self.job_title}>'
+    
+    @property
+    def skills_dict(self):
+        """Convert skills JSON text to dictionary"""
+        if self.required_skills:
+            return json.loads(self.required_skills)
+        return {"technical_skills": [], "soft_skills": []}
+    
+    @skills_dict.setter
+    def skills_dict(self, value):
+        """Convert dictionary to JSON text for storage"""
+        self.required_skills = json.dumps(value)
+    
+    @property
+    def responsibilities_list(self):
+        """Convert responsibilities JSON text to list"""
+        if self.job_responsibilities:
+            return json.loads(self.job_responsibilities)
+        return []
+    
+    @responsibilities_list.setter
+    def responsibilities_list(self, value):
+        """Convert list to JSON text for storage"""
+        self.job_responsibilities = json.dumps(value)
+
+
+class Candidate(db.Model):
+    """Model for candidates"""
+    __tablename__ = 'candidates'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(20))
+    resume_path = db.Column(db.String(255))
+    skills = db.Column(db.Text)  # JSON string of skills
+    experience = db.Column(db.Float)
+    education = db.Column(db.Text)  # JSON string of education history
+    current_company = db.Column(db.String(100))
+    current_position = db.Column(db.String(100))
+    status = db.Column(db.String(20), default='active')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    shortlists = db.relationship('ShortlistCandidate', back_populates='candidate')
+    applications = db.relationship('Application', back_populates='candidate')
+    email_tracking = db.relationship('EmailTracking', back_populates='candidate')
+    interviews = db.relationship('Interview', back_populates='candidate')
+    job_matches = db.relationship('MatchScore', back_populates='candidate')
+    
+    def __repr__(self):
+        return f'<Candidate {self.name}>'
+    
+    @property
+    def education_list(self):
+        """Convert education JSON text to list"""
+        if self.education:
+            return json.loads(self.education)
+        return []
+    
+    @education_list.setter
+    def education_list(self, value):
+        """Convert list to JSON text for storage"""
+        self.education = json.dumps(value)
+    
+    @property
+    def experience_list(self):
+        """Convert experience JSON text to list"""
+        if self.experience:
+            return json.loads(self.experience)
+        return []
+    
+    @experience_list.setter
+    def experience_list(self, value):
+        """Convert list to JSON text for storage"""
+        self.experience = json.dumps(value)
+    
+    @property
+    def skills_dict(self):
+        """Convert skills JSON text to dictionary"""
+        if self.skills:
+            return json.loads(self.skills)
+        return {"technical": [], "soft": []}
+    
+    @skills_dict.setter
+    def skills_dict(self, value):
+        """Convert dictionary to JSON text for storage"""
+        self.skills = json.dumps(value)
+    
+    @property
+    def certifications_list(self):
+        """Convert certifications JSON text to list"""
+        if self.certifications:
+            return json.loads(self.certifications)
+        return []
+    
+    @certifications_list.setter
+    def certifications_list(self, value):
+        """Convert list to JSON text for storage"""
+        self.certifications = json.dumps(value)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'email': self.email,
+            'phone': self.phone,
+            'skills': json.loads(self.skills) if self.skills else [],
+            'experience': self.experience,
+            'education': json.loads(self.education) if self.education else [],
+            'current_company': self.current_company,
+            'current_position': self.current_position,
+            'status': self.status
+        }
+
+
+class MatchScore(db.Model):
+    """Model for storing match scores between candidates and job descriptions"""
+    __tablename__ = 'match_scores'
+    
+    match_id = db.Column(db.Integer, primary_key=True)
+    jd_id = db.Column(db.Integer, db.ForeignKey('job_descriptions.jd_id'))
+    candidate_id = db.Column(db.Integer, db.ForeignKey('candidates.id'))
+    overall_score = db.Column(db.Float)
+    skills_score = db.Column(db.Float)
+    experience_score = db.Column(db.Float)
+    education_score = db.Column(db.Float)
+    certifications_score = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    job = db.relationship('JobDescription', back_populates='candidates')
+    candidate = db.relationship('Candidate', back_populates='job_matches')
+    
+    def __repr__(self):
+        return f'<MatchScore {self.job.job_title} - {self.candidate.name}: {self.overall_score}%>'
+
+
+class Shortlist(db.Model):
+    """Model for shortlisted candidates"""
+    __tablename__ = 'shortlists'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey('job_descriptions.jd_id'), nullable=False)
+    notes = db.Column(db.Text)
+    status = db.Column(db.String(20), default='active')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    job = db.relationship('JobDescription', back_populates='shortlists')
+    candidates = db.relationship('ShortlistCandidate', back_populates='shortlist')
+    
+    def __repr__(self):
+        return f'<Shortlist {self.name}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'job_id': self.job_id,
+            'notes': self.notes,
+            'status': self.status,
+            'created_at': self.created_at.isoformat(),
+            'candidate_count': len(self.candidates)
+        }
+
+
+class ShortlistCandidate(db.Model):
+    __tablename__ = 'shortlist_candidates'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    shortlist_id = db.Column(db.Integer, db.ForeignKey('shortlists.id'), nullable=False)
+    candidate_id = db.Column(db.Integer, db.ForeignKey('candidates.id'), nullable=False)
+    match_score = db.Column(db.Float)
+    status = db.Column(db.String(20), default='pending')
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    shortlist = db.relationship('Shortlist', back_populates='candidates')
+    candidate = db.relationship('Candidate', back_populates='shortlists')
+
+
+class Application(db.Model):
+    __tablename__ = 'applications'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    candidate_id = db.Column(db.Integer, db.ForeignKey('candidates.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey('job_descriptions.jd_id'), nullable=False)
+    status = db.Column(db.String(20), default='applied')
+    match_score = db.Column(db.Float)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    candidate = db.relationship('Candidate', back_populates='applications')
+    job = db.relationship('JobDescription', back_populates='applications')
+    
+    def __repr__(self):
+        return f'<Application {self.candidate.name} - {self.job.job_title}>'
+
+
+class EmailTracking(db.Model):
+    __tablename__ = 'email_tracking'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    candidate_id = db.Column(db.Integer, db.ForeignKey('candidates.id'), nullable=False)
+    email_type = db.Column(db.String(50))
+    subject = db.Column(db.String(255))
+    status = db.Column(db.String(20))
+    opened_at = db.Column(db.DateTime)
+    clicked_at = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    candidate = db.relationship('Candidate', back_populates='email_tracking')
+
+
+class Analytics(db.Model):
+    __tablename__ = 'analytics'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    metric_name = db.Column(db.String(50))
+    metric_value = db.Column(db.Float)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    def __repr__(self):
+        return f'<Interview {self.shortlist.candidate.name} - {self.scheduled_date.strftime("%Y-%m-%d %H:%M")}>'
+
+
+class Interview(db.Model):
+    """Model for candidate interviews"""
+    __tablename__ = 'interviews'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    candidate_id = db.Column(db.Integer, db.ForeignKey('candidates.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey('job_descriptions.jd_id'), nullable=False)
+    scheduled_at = db.Column(db.DateTime, nullable=False)
+    interview_type = db.Column(db.String(50))  # e.g., 'technical', 'hr', 'manager'
+    status = db.Column(db.String(20), default='scheduled')  # scheduled, completed, cancelled
+    feedback = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    candidate = db.relationship('Candidate', back_populates='interviews')
+    job = db.relationship('JobDescription', back_populates='interviews')
+    
+    def __repr__(self):
+        return f'<Interview {self.candidate.name} - {self.job.job_title}>'
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'candidate_id': self.candidate_id,
+            'job_id': self.job_id,
+            'scheduled_at': self.scheduled_at.isoformat(),
+            'interview_type': self.interview_type,
+            'status': self.status,
+            'feedback': self.feedback,
+            'created_at': self.created_at.isoformat()
+        }

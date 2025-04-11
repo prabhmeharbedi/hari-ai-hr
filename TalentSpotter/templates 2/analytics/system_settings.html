@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+
+{% block title %}System Settings | AI Recruiter{% endblock %}
+
+{% block header_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-4 align-items-center">
+                    <div class="card-title mb-0">System Configuration</div>
+                    <a href="{{ url_for('settings.settings_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Settings
+                    </a>
+                </div>
+                
+                <form method="post" action="{{ url_for('settings.system_settings') }}">
+                    <div class="row g-4">
+                        <!-- File Upload Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-file-upload text-primary me-2"></i>
+                                        File Upload Settings
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label for="max_upload_size_mb" class="form-label">Maximum Upload Size</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="max_upload_size_mb" name="max_upload_size_mb" min="1" max="100" value="{{ config.system.max_upload_size_mb }}" required>
+                                            <span class="input-group-text">MB</span>
+                                        </div>
+                                        <div class="form-text">Maximum file size for CV uploads.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Display Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-table text-info me-2"></i>
+                                        Display Settings
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <label for="pagination_size" class="form-label">Items Per Page</label>
+                                        <input type="number" class="form-control" id="pagination_size" name="pagination_size" min="5" max="100" step="5" value="{{ config.system.pagination_size }}" required>
+                                        <div class="form-text">Number of items to display per page in lists.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Performance Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-tachometer-alt text-success me-2"></i>
+                                        Performance Settings
+                                    </h5>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="enable_caching" name="enable_caching" {% if config.system.enable_caching %}checked{% endif %}>
+                                        <label class="form-check-label" for="enable_caching">Enable Response Caching</label>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="cache_duration_minutes" class="form-label">Cache Duration</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="cache_duration_minutes" name="cache_duration_minutes" min="5" max="1440" value="{{ config.system.cache_duration_minutes }}" required>
+                                            <span class="input-group-text">minutes</span>
+                                        </div>
+                                        <div class="form-text">How long to cache AI agent responses.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Debug Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-bug text-warning me-2"></i>
+                                        Debug Settings
+                                    </h5>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="enable_debug_logs" name="enable_debug_logs" {% if config.system.enable_debug_logs %}checked{% endif %}>
+                                        <label class="form-check-label" for="enable_debug_logs">Enable Debug Logs</label>
+                                    </div>
+                                    
+                                    <div class="form-text">Enable detailed logging for troubleshooting purposes.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

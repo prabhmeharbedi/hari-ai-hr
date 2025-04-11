@@ -1,0 +1,224 @@
+{% extends 'layout.html' %}
+
+{% block title %}Match Results - AI Recruiter{% endblock %}
+{% block header_title %}Match Results{% endblock %}
+
+{% block content %}
+<div class="dashboard-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="m-0">Match Dashboard</h4>
+        <div>
+            <a href="{{ url_for('matches.new_match') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> New Match
+            </a>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link active" href="#jobs" data-bs-toggle="tab">Jobs</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#candidates" data-bs-toggle="tab">Candidates</a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="jobs">
+            <div class="row">
+                {% for job in jobs %}
+                <div class="col-md-6 col-xl-4 mb-4">
+                    <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title">{{ job.job_title }}</h5>
+                                <span class="badge bg-primary">{{ job.candidates|length }} matches</span>
+                            </div>
+                            <p class="card-text text-secondary small">{{ job.department }}</p>
+                            <div class="mb-3">
+                                <div class="text-secondary small mb-1">Required Experience</div>
+                                <span class="badge bg-secondary">{{ job.required_experience }} years</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-secondary small mb-1">Top Skills</div>
+                                {% if job.required_skills %}
+                                    {% set skills = job.required_skills.split(',')[:3] %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for skill in skills %}
+                                            <span class="badge bg-info text-dark">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                        {% if job.required_skills.split(',')|length > 3 %}
+                                            <span class="badge bg-secondary">+{{ job.required_skills.split(',')|length - 3 }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">None specified</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if job.candidates|length > 0 %}
+                                {% set top_candidate = job.candidates|sort(attribute='overall_score', reverse=true)|first %}
+                                <div class="mb-3">
+                                    <div class="text-secondary small mb-1">Top Candidate</div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar rounded-circle bg-primary me-2" style="width: 24px; height: 24px;">
+                                            <span class="d-flex align-items-center justify-content-center h-100 text-white fw-bold small">
+                                                {{ top_candidate.candidate.name[:1] }}
+                                            </span>
+                                        </div>
+                                        <div class="me-auto">{{ top_candidate.candidate.name }}</div>
+                                        <div class="match-score-percentage fw-bold 
+                                            {% if top_candidate.overall_score >= 75 %}text-success
+                                            {% elif top_candidate.overall_score >= 50 %}text-warning
+                                            {% else %}text-danger{% endif %}">
+                                            {{ top_candidate.overall_score|round }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top border-secondary">
+                            <div class="d-grid">
+                                <a href="{{ url_for('matches.match_for_job', job_id=job.jd_id) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-users me-1"></i> View Candidates
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="tab-pane fade" id="candidates">
+            <div class="row">
+                {% for candidate in candidates %}
+                <div class="col-md-6 col-xl-4 mb-4">
+                    <div class="card bg-dark border border-secondary h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar rounded-circle bg-primary me-2" style="width: 40px; height: 40px;">
+                                    <span class="d-flex align-items-center justify-content-center h-100 text-white fw-bold">
+                                        {{ candidate.name[:1] }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-0">{{ candidate.name }}</h5>
+                                    <div class="text-secondary small">{{ candidate.email }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="text-secondary small mb-1">Skills</div>
+                                {% if candidate.skills %}
+                                    {% set skills = candidate.skills.split(',')[:3] %}
+                                    <div class="d-flex flex-wrap gap-1">
+                                        {% for skill in skills %}
+                                            <span class="badge bg-info text-dark">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                        {% if candidate.skills.split(',')|length > 3 %}
+                                            <span class="badge bg-secondary">+{{ candidate.skills.split(',')|length - 3 }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">None specified</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if candidate.jobs|length > 0 %}
+                                {% set best_match = candidate.jobs|sort(attribute='overall_score', reverse=true)|first %}
+                                <div class="mb-3">
+                                    <div class="text-secondary small mb-1">Best Job Match</div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>{{ best_match.job.job_title }}</div>
+                                        <div class="match-score-percentage fw-bold 
+                                            {% if best_match.overall_score >= 75 %}text-success
+                                            {% elif best_match.overall_score >= 50 %}text-warning
+                                            {% else %}text-danger{% endif %}">
+                                            {{ best_match.overall_score|round }}%
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="progress mb-3" style="height: 6px;">
+                                    <div class="progress-bar 
+                                        {% if best_match.overall_score >= 75 %}bg-success
+                                        {% elif best_match.overall_score >= 50 %}bg-warning
+                                        {% else %}bg-danger{% endif %}"
+                                        role="progressbar" style="width: {{ best_match.overall_score }}%">
+                                    </div>
+                                </div>
+                            {% else %}
+                                <p class="text-muted small">No job matches yet</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent border-top border-secondary">
+                            <div class="d-grid">
+                                <a href="{{ url_for('matches.match_for_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-briefcase me-1"></i> View Job Matches
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Match Detail Modal -->
+<div class="modal fade" id="matchDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Match Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="matchDetailContent">
+                <div class="d-flex justify-content-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Function to load match details via AJAX
+function loadMatchDetails(jobId, candidateId) {
+    const url = `/matches/detail/${jobId}/${candidateId}`;
+    fetch(url)
+        .then(response => response.text())
+        .then(html => {
+            document.getElementById('matchDetailContent').innerHTML = html;
+        })
+        .catch(error => {
+            document.getElementById('matchDetailContent').innerHTML = `
+                <div class="alert alert-danger">
+                    Error loading match details: ${error.message}
+                </div>
+            `;
+        });
+}
+
+// Event listeners for match detail buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const detailButtons = document.querySelectorAll('.view-match-details');
+    detailButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const jobId = this.getAttribute('data-job-id');
+            const candidateId = this.getAttribute('data-candidate-id');
+            loadMatchDetails(jobId, candidateId);
+            
+            const modal = new bootstrap.Modal(document.getElementById('matchDetailModal'));
+            modal.show();
+        });
+    });
+});
+</script>
+{% endblock %}

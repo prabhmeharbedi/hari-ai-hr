@@ -1,0 +1,459 @@
+{% extends "layout.html" %}
+
+{% block title %}Candidate Insights - AI Recruitment System{% endblock %}
+
+{% block page_title %}Candidate Insights{% endblock %}
+{% block page_subtitle %}{{ candidate.name }}{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('view_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-outline-secondary btn-ripple">
+            <i class="bi bi-arrow-left me-1"></i> Back to Profile
+        </a>
+        <a href="{{ url_for('api_insights') }}" class="btn btn-outline-primary btn-ripple api-insights" data-candidate-id="{{ candidate.candidate_id }}">
+            <i class="bi bi-stars me-1"></i> Generate New Insights
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    {% if not insights %}
+        <div class="alert alert-info animate-fade-in">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle-fill fs-4 me-2"></i>
+                <div>No insights have been generated for this candidate yet. Click the "Generate New Insights" button to create insights.</div>
+            </div>
+        </div>
+        <div id="insights-loading" class="text-center py-5 d-none animate-fade-in">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h5 class="mb-2">Generating AI Insights</h5>
+            <p class="text-muted">Our AI is analyzing the candidate's profile to generate comprehensive insights...</p>
+        </div>
+    {% endif %}
+    
+    <div id="insights-container" class="{% if not insights %}d-none{% endif %} animate-fade-in">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card mb-4 scale-in hover-glow">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-2 candidate-icon">
+                                <i class="bi bi-stars text-warning"></i>
+                            </div>
+                            Executive Summary
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="executive-summary">
+                            {% if insights and insights.summary %}
+                                {{ insights.summary }}
+                            {% else %}
+                                <div class="placeholder-glow shimmer">
+                                    <span class="placeholder col-12"></span>
+                                    <span class="placeholder col-10"></span>
+                                    <span class="placeholder col-11"></span>
+                                    <span class="placeholder col-9"></span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4 h-100 hover-glow">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0 d-flex align-items-center">
+                                    <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2 candidate-icon">
+                                        <i class="bi bi-check-circle-fill text-success"></i>
+                                    </div>
+                                    Key Strengths
+                                </h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="key-strengths">
+                                    {% if insights and insights.strengths %}
+                                        <ul class="list-group list-group-flush stagger-fade-in">
+                                            {% for strength in insights.strengths %}
+                                                <li class="list-group-item px-4 py-3">
+                                                    <div class="d-flex">
+                                                        <div class="text-success me-2"><i class="bi bi-check-circle"></i></div>
+                                                        <div>{{ strength }}</div>
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <div class="placeholder-glow p-4 shimmer">
+                                            <span class="placeholder col-12"></span>
+                                            <span class="placeholder col-8"></span>
+                                            <span class="placeholder col-10"></span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-4 h-100 hover-glow">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0 d-flex align-items-center">
+                                    <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2 candidate-icon">
+                                        <i class="bi bi-graph-up-arrow text-info"></i>
+                                    </div>
+                                    Growth Areas
+                                </h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <div id="growth-areas">
+                                    {% if insights and insights.growth_areas %}
+                                        <ul class="list-group list-group-flush stagger-fade-in">
+                                            {% for area in insights.growth_areas %}
+                                                <li class="list-group-item px-4 py-3">
+                                                    <div class="d-flex">
+                                                        <div class="text-info me-2"><i class="bi bi-arrow-up-circle"></i></div>
+                                                        <div>{{ area }}</div>
+                                                    </div>
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% else %}
+                                        <div class="placeholder-glow p-4 shimmer">
+                                            <span class="placeholder col-12"></span>
+                                            <span class="placeholder col-9"></span>
+                                            <span class="placeholder col-11"></span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card mb-4 hover-glow">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2 candidate-icon">
+                                <i class="bi bi-bar-chart-fill text-primary"></i>
+                            </div>
+                            Skill Assessment
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="skill-assessment">
+                            {% if insights and insights.skill_assessment %}
+                                <div class="stagger-fade-in">
+                                    {% for skill, rating in insights.skill_assessment.items() %}
+                                        <div class="mb-3 animate-on-scroll">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <span class="fw-medium">{{ skill }}</span>
+                                                <span class="badge text-bg-primary">{{ rating }}/5</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-primary progress-bar-animated" role="progressbar" style="--width: {{ rating * 20 }}%;" aria-valuenow="{{ rating }}" aria-valuemin="0" aria-valuemax="5"></div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="placeholder-glow shimmer">
+                                    <div class="mb-3">
+                                        <span class="placeholder col-4"></span>
+                                        <span class="placeholder col-12 mt-1" style="height: 8px;"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <span class="placeholder col-5"></span>
+                                        <span class="placeholder col-12 mt-1" style="height: 8px;"></span>
+                                    </div>
+                                    <div class="mb-3">
+                                        <span class="placeholder col-6"></span>
+                                        <span class="placeholder col-12 mt-1" style="height: 8px;"></span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4 hover-glow">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2 candidate-icon">
+                                <i class="bi bi-people-fill text-success"></i>
+                            </div>
+                            Cultural Fit Assessment
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="cultural-fit">
+                            {% if insights and insights.cultural_fit %}
+                                {{ insights.cultural_fit }}
+                            {% else %}
+                                <div class="placeholder-glow shimmer">
+                                    <span class="placeholder col-12"></span>
+                                    <span class="placeholder col-10"></span>
+                                    <span class="placeholder col-11"></span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4 hover-glow">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0 d-flex align-items-center">
+                            <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-2 candidate-icon">
+                                <i class="bi bi-chat-right-quote-fill text-warning"></i>
+                            </div>
+                            Interview Focus Areas
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="interview-focus">
+                            {% if insights and insights.interview_focus %}
+                                <ul class="list-group list-group-flush stagger-fade-in">
+                                    {% for focus in insights.interview_focus %}
+                                        <li class="list-group-item px-4 py-3">
+                                            <div class="d-flex">
+                                                <div class="text-warning me-2"><i class="bi bi-chat-right-text"></i></div>
+                                                <div>{{ focus }}</div>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <div class="placeholder-glow p-4 shimmer">
+                                    <span class="placeholder col-12"></span>
+                                    <span class="placeholder col-9"></span>
+                                    <span class="placeholder col-11"></span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const apiInsightsBtn = document.querySelector('.api-insights');
+        const insightsContainer = document.getElementById('insights-container');
+        const insightsLoading = document.getElementById('insights-loading');
+        
+        // Initialize animate-on-scroll elements
+        function initAnimations() {
+            // Animate progress bars when visible
+            const progressBars = document.querySelectorAll('.progress-bar-animated');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.2 });
+            
+            progressBars.forEach(bar => {
+                observer.observe(bar);
+            });
+            
+            // Add hover effects to icons
+            const icons = document.querySelectorAll('.candidate-icon');
+            icons.forEach(icon => {
+                icon.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                });
+                
+                icon.addEventListener('mouseleave', function() {
+                    this.style.transform = '';
+                });
+            });
+        }
+        
+        // Call animation initialization
+        initAnimations();
+        
+        if (apiInsightsBtn) {
+            apiInsightsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Add button animation
+                this.classList.add('scale-in');
+                setTimeout(() => {
+                    this.classList.remove('scale-in');
+                }, 500);
+                
+                const candidateId = this.dataset.candidateId;
+                
+                // Show loading
+                insightsLoading.classList.remove('d-none');
+                insightsContainer.classList.add('d-none');
+                
+                // Make API call to generate insights
+                fetch(`/api/insights`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        candidate_id: candidateId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading
+                    insightsLoading.classList.add('d-none');
+                    
+                    if (data.error) {
+                        alert('Error generating insights: ' + data.error);
+                        return;
+                    }
+                    
+                    // Show insights container
+                    insightsContainer.classList.remove('d-none');
+                    
+                    // Update the insights data
+                    document.getElementById('executive-summary').innerHTML = data.summary || 'No summary available';
+                    
+                    // Update strengths
+                    let strengthsHtml = '<ul class="list-group list-group-flush stagger-fade-in">';
+                    if (data.strengths && data.strengths.length > 0) {
+                        data.strengths.forEach(strength => {
+                            strengthsHtml += `
+                                <li class="list-group-item px-4 py-3">
+                                    <div class="d-flex">
+                                        <div class="text-success me-2"><i class="bi bi-check-circle"></i></div>
+                                        <div>${strength}</div>
+                                    </div>
+                                </li>`;
+                        });
+                    } else {
+                        strengthsHtml += '<li class="list-group-item px-4 py-3">No key strengths identified</li>';
+                    }
+                    strengthsHtml += '</ul>';
+                    document.getElementById('key-strengths').innerHTML = strengthsHtml;
+                    
+                    // Update growth areas
+                    let growthHtml = '<ul class="list-group list-group-flush stagger-fade-in">';
+                    if (data.growth_areas && data.growth_areas.length > 0) {
+                        data.growth_areas.forEach(area => {
+                            growthHtml += `
+                                <li class="list-group-item px-4 py-3">
+                                    <div class="d-flex">
+                                        <div class="text-info me-2"><i class="bi bi-arrow-up-circle"></i></div>
+                                        <div>${area}</div>
+                                    </div>
+                                </li>`;
+                        });
+                    } else {
+                        growthHtml += '<li class="list-group-item px-4 py-3">No growth areas identified</li>';
+                    }
+                    growthHtml += '</ul>';
+                    document.getElementById('growth-areas').innerHTML = growthHtml;
+                    
+                    // Update skill assessment
+                    let skillsHtml = '<div class="stagger-fade-in">';
+                    if (data.skill_assessment && Object.keys(data.skill_assessment).length > 0) {
+                        Object.entries(data.skill_assessment).forEach(([skill, rating]) => {
+                            skillsHtml += `
+                                <div class="mb-3 animate-on-scroll">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-medium">${skill}</span>
+                                        <span class="badge text-bg-primary">${rating}/5</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-primary progress-bar-animated" role="progressbar" style="--width: ${rating * 20}%;" aria-valuenow="${rating}" aria-valuemin="0" aria-valuemax="5"></div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        skillsHtml += '</div>';
+                    } else {
+                        skillsHtml = '<div class="alert alert-info">No skill assessment available</div>';
+                    }
+                    document.getElementById('skill-assessment').innerHTML = skillsHtml;
+                    
+                    // Update cultural fit
+                    document.getElementById('cultural-fit').innerHTML = data.cultural_fit || 'No cultural fit assessment available';
+                    
+                    // Update interview focus
+                    let interviewHtml = '<ul class="list-group list-group-flush stagger-fade-in">';
+                    if (data.interview_focus && data.interview_focus.length > 0) {
+                        data.interview_focus.forEach(focus => {
+                            interviewHtml += `
+                                <li class="list-group-item px-4 py-3">
+                                    <div class="d-flex">
+                                        <div class="text-warning me-2"><i class="bi bi-chat-right-text"></i></div>
+                                        <div>${focus}</div>
+                                    </div>
+                                </li>`;
+                        });
+                    } else {
+                        interviewHtml += '<li class="list-group-item px-4 py-3">No interview focus areas identified</li>';
+                    }
+                    interviewHtml += '</ul>';
+                    document.getElementById('interview-focus').innerHTML = interviewHtml;
+                    
+                    // Optional: Display a success message
+                    const alertHtml = `
+                        <div class="alert alert-success alert-dismissible fade show mb-4 scale-in" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <div>Insights successfully generated!</div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    insightsContainer.insertAdjacentHTML('beforebegin', alertHtml);
+                    
+                    // Re-initialize animations
+                    setTimeout(() => {
+                        initAnimations();
+                    }, 100);
+                })
+                .catch(error => {
+                    // Hide loading, show error
+                    insightsLoading.classList.add('d-none');
+                    
+                    const alertHtml = `
+                        <div class="alert alert-danger alert-dismissible fade show mb-4 scale-in" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div>Error: ${error.message || 'Failed to generate insights'}</div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
+                    insightsContainer.insertAdjacentHTML('beforebegin', alertHtml);
+                });
+            });
+        }
+        
+        // Initialize skills progress bar colors
+        function initializeSkillBars() {
+            const skillBars = document.querySelectorAll('#skill-assessment .progress-bar');
+            skillBars.forEach(bar => {
+                const value = parseInt(bar.getAttribute('aria-valuenow'));
+                
+                if (value >= 4) {
+                    bar.classList.remove('bg-primary');
+                    bar.classList.add('bg-success');
+                } else if (value <= 2) {
+                    bar.classList.remove('bg-primary');
+                    bar.classList.add('bg-warning');
+                }
+            });
+        }
+        
+        initializeSkillBars();
+    });
+</script>
+{% endblock %}

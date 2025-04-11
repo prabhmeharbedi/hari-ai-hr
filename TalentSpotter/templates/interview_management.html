@@ -1,0 +1,684 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    {% if action == 'list' %}
+        Interviews - AI Recruiter
+    {% elif action == 'schedule' %}
+        Schedule Interview - AI Recruiter
+    {% elif action == 'view' %}
+        Interview Details - AI Recruiter
+    {% elif action == 'edit' %}
+        Edit Interview - AI Recruiter
+    {% elif action == 'feedback' %}
+        Add Feedback - AI Recruiter
+    {% endif %}
+{% endblock %}
+
+{% block header_title %}
+    {% if action == 'list' %}
+        Interview Management
+    {% elif action == 'schedule' %}
+        Schedule Interview
+    {% elif action == 'view' %}
+        Interview Details
+    {% elif action == 'edit' %}
+        Edit Interview
+    {% elif action == 'feedback' %}
+        Add Interview Feedback
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if action == 'list' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">Interview Management</h4>
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="?status=all">All Interviews</a></li>
+                    <li><a class="dropdown-item" href="?status=scheduled">Scheduled</a></li>
+                    <li><a class="dropdown-item" href="?status=completed">Completed</a></li>
+                    <li><a class="dropdown-item" href="?status=cancelled">Cancelled</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div class="card bg-dark mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="m-0">Upcoming Interviews</h5>
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        {{ current_month }} {{ current_year }}
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark mb-0">
+                        <thead>
+                            <tr class="text-center">
+                                <th>Mon</th>
+                                <th>Tue</th>
+                                <th>Wed</th>
+                                <th>Thu</th>
+                                <th>Fri</th>
+                                <th class="text-muted">Sat</th>
+                                <th class="text-muted">Sun</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-center align-top" style="height: 120px;">
+                                <td class="text-muted">30</td>
+                                <td class="text-muted">31</td>
+                                <td>1</td>
+                                <td>2</td>
+                                <td>3
+                                    <div class="mt-1">
+                                        <div class="calendar-event bg-primary text-white small p-1 rounded">
+                                            09:30 - John Smith
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-muted">4</td>
+                                <td class="text-muted">5</td>
+                            </tr>
+                            <tr class="text-center align-top" style="height: 120px;">
+                                <td>6</td>
+                                <td>7
+                                    <div class="mt-1">
+                                        <div class="calendar-event bg-primary text-white small p-1 rounded">
+                                            10:00 - Sarah Lee
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>8</td>
+                                <td>9</td>
+                                <td>10</td>
+                                <td class="text-muted">11</td>
+                                <td class="text-muted">12</td>
+                            </tr>
+                            <!-- More calendar rows would go here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interview List -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Job</th>
+                        <th>Date & Time</th>
+                        <th>Format</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for interview in interviews %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar rounded-circle bg-primary me-2" style="width: 32px; height: 32px;">
+                                    <span class="d-flex align-items-center justify-content-center h-100 text-white fw-bold">
+                                        {{ interview.shortlist.candidate.name[:1] }}
+                                    </span>
+                                </div>
+                                <div>{{ interview.shortlist.candidate.name }}</div>
+                            </div>
+                        </td>
+                        <td>{{ interview.shortlist.job.job_title }}</td>
+                        <td>
+                            {% if interview.scheduled_date %}
+                                {{ interview.scheduled_date.strftime('%d %b %Y, %H:%M') }}
+                            {% else %}
+                                Not scheduled
+                            {% endif %}
+                        </td>
+                        <td>{{ interview.format }}</td>
+                        <td>
+                            {% if interview.status == 'scheduled' %}
+                                <span class="status-badge status-pending">Scheduled</span>
+                            {% elif interview.status == 'completed' %}
+                                <span class="status-badge status-active">Completed</span>
+                            {% elif interview.status == 'cancelled' %}
+                                <span class="status-badge status-inactive">Cancelled</span>
+                            {% else %}
+                                <span class="status-badge status-inactive">{{ interview.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('interviews.view_interview', interview_id=interview.interview_id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('interviews.edit_interview', interview_id=interview.interview_id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if interview.status == 'scheduled' %}
+                                    <a href="{{ url_for('interviews.add_feedback', interview_id=interview.interview_id) }}" class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-comment"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% elif action == 'schedule' or action == 'edit' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">
+                {% if action == 'schedule' %}
+                    Schedule Interview
+                {% else %}
+                    Edit Interview
+                {% endif %}
+            </h4>
+            <a href="{{ url_for('interviews.interview_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Interviews
+            </a>
+        </div>
+        
+        {% if action == 'schedule' %}
+            <div class="alert alert-info mb-4">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="alert-heading">Scheduling Interview</h5>
+                        <p class="mb-0">
+                            You are scheduling an interview for <strong>{{ shortlist.candidate.name }}</strong> 
+                            for the <strong>{{ shortlist.job.job_title }}</strong> position.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="scheduled_date" class="form-label">Date & Time <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="scheduled_date" name="scheduled_date" 
+                               value="{{ interview.scheduled_date.strftime('%Y-%m-%dT%H:%M') if interview and interview.scheduled_date else '' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="format" class="form-label">Interview Format <span class="text-danger">*</span></label>
+                        <select class="form-select" id="format" name="format" required>
+                            <option value="">Select format</option>
+                            <option value="Video Call" {% if interview and interview.format == 'Video Call' %}selected{% endif %}>Video Call</option>
+                            <option value="Phone Call" {% if interview and interview.format == 'Phone Call' %}selected{% endif %}>Phone Call</option>
+                            <option value="In-person" {% if interview and interview.format == 'In-person' %}selected{% endif %}>In-person</option>
+                            <option value="Technical Test" {% if interview and interview.format == 'Technical Test' %}selected{% endif %}>Technical Test</option>
+                        </select>
+                    </div>
+                </div>
+                {% if action == 'edit' %}
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="scheduled" {% if interview and interview.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                            <option value="completed" {% if interview and interview.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="cancelled" {% if interview and interview.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ interview.notes if interview else '' }}</textarea>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>
+                        {% if action == 'schedule' %}
+                            Schedule Interview
+                        {% else %}
+                            Update Interview
+                        {% endif %}
+                    </button>
+                    <a href="{{ url_for('interviews.interview_list') }}" class="btn btn-secondary">Cancel</a>
+                    
+                    {% if action == 'schedule' %}
+                        <a href="{{ url_for('interviews.generate_email', interview_id=0) }}" class="btn btn-outline-info float-end" id="generate-email-btn">
+                            <i class="fas fa-envelope me-2"></i>Generate Email Template
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+
+        {% if action == 'schedule' %}
+            <div class="card bg-dark mt-4">
+                <div class="card-header">
+                    <h5 class="m-0">Candidate Match Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="match-score-circle score-high mb-2">
+                                <span>{{ match.overall_score|round }}%</span>
+                            </div>
+                            <div>Overall Match</div>
+                        </div>
+                        <div class="col-md-8">
+                            <h6 class="mb-3">Suggested Interview Topics</h6>
+                            <ul class="list-group">
+                                <li class="list-group-item bg-transparent border-secondary">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    Technical skills assessment in key areas
+                                </li>
+                                <li class="list-group-item bg-transparent border-secondary">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    Past project experience and responsibilities
+                                </li>
+                                <li class="list-group-item bg-transparent border-secondary">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    Problem-solving scenarios related to job role
+                                </li>
+                                <li class="list-group-item bg-transparent border-secondary">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    Team collaboration and communication style
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Email Template Modal -->
+    <div class="modal fade" id="emailTemplateModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark border border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title">Interview Invitation Email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <input type="text" class="form-control" value="Interview Invitation: {{ shortlist.job.job_title }} Position" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Content</label>
+                        <textarea class="form-control" rows="12" readonly>Dear {{ shortlist.candidate.name }},
+
+I hope this email finds you well. We're pleased to inform you that you have been shortlisted for the {{ shortlist.job.job_title }} position at our company.
+
+We would like to invite you for an interview to discuss your qualifications and experience further. The details are as follows:
+
+Date and Time: [Interview Date and Time]
+Format: [Interview Format]
+Duration: Approximately 45-60 minutes
+
+Please confirm your availability for this interview by replying to this email. If you have any questions or need to reschedule, please let us know as soon as possible.
+
+We look forward to speaking with you!
+
+Best regards,
+HR Department
+Company Name</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">
+                        <i class="fas fa-copy me-1"></i> Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif action == 'view' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">Interview Details</h4>
+            <div>
+                <a href="{{ url_for('interviews.edit_interview', interview_id=interview.interview_id) }}" class="btn btn-primary me-2">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </a>
+                {% if interview.status == 'scheduled' %}
+                    <a href="{{ url_for('interviews.add_feedback', interview_id=interview.interview_id) }}" class="btn btn-success me-2">
+                        <i class="fas fa-comment me-1"></i> Add Feedback
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('interviews.interview_list') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Interview Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="text-secondary small">Date & Time</div>
+                            <div class="fw-semibold">
+                                {% if interview.scheduled_date %}
+                                    {{ interview.scheduled_date.strftime('%d %b %Y, %H:%M') }}
+                                {% else %}
+                                    Not scheduled
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-secondary small">Format</div>
+                            <div class="fw-semibold">{{ interview.format }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-secondary small">Status</div>
+                            <div>
+                                {% if interview.status == 'scheduled' %}
+                                    <span class="status-badge status-pending">Scheduled</span>
+                                {% elif interview.status == 'completed' %}
+                                    <span class="status-badge status-active">Completed</span>
+                                {% elif interview.status == 'cancelled' %}
+                                    <span class="status-badge status-inactive">Cancelled</span>
+                                {% else %}
+                                    <span class="status-badge status-inactive">{{ interview.status }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if interview.feedback %}
+                            <div>
+                                <div class="text-secondary small">Feedback Provided</div>
+                                <div>
+                                    <span class="status-badge status-active">Yes</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Candidate Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="avatar rounded-circle bg-primary mx-auto mb-2" style="width: 80px; height: 80px;">
+                                <span class="d-flex align-items-center justify-content-center h-100 text-white fw-bold" style="font-size: 2rem;">
+                                    {{ interview.shortlist.candidate.name[:1] }}
+                                </span>
+                            </div>
+                            <h5 class="mb-1">{{ interview.shortlist.candidate.name }}</h5>
+                            <p class="text-secondary">{{ interview.shortlist.candidate.email }}</p>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="text-secondary small">Phone</div>
+                            <div class="fw-semibold">{{ interview.shortlist.candidate.phone or 'Not provided' }}</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="text-secondary small">Skills</div>
+                            <div>
+                                {% if interview.shortlist.candidate.skills %}
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        {% for skill in interview.shortlist.candidate.skills.split(',')[:5] %}
+                                            <span class="badge bg-secondary">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                        {% if interview.shortlist.candidate.skills.split(',')|length > 5 %}
+                                            <span class="badge bg-light text-dark">+{{ interview.shortlist.candidate.skills.split(',')|length - 5 }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">None specified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{{ url_for('candidates.view_candidate', candidate_id=interview.shortlist.candidate.candidate_id) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-user me-1"></i> View Full Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card mb-4 bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Job Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="mb-2">{{ interview.shortlist.job.job_title }}</h5>
+                        <p class="text-secondary mb-3">{{ interview.shortlist.job.department }}</p>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="text-secondary small">Required Experience</div>
+                                <div class="fw-semibold">{{ interview.shortlist.job.required_experience }} years</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-secondary small">Required Education</div>
+                                <div class="fw-semibold">{{ interview.shortlist.job.required_education or 'Not specified' }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="text-secondary small">Required Skills</div>
+                            <div>
+                                {% if interview.shortlist.job.required_skills %}
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        {% for skill in interview.shortlist.job.required_skills.split(',') %}
+                                            <span class="badge bg-primary">{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted">None specified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="text-secondary small">Job Responsibilities</div>
+                            <p>{{ interview.shortlist.job.job_responsibilities or 'Not specified' }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card bg-dark">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="m-0">Interview Feedback</h5>
+                        {% if not interview.feedback and interview.status == 'scheduled' %}
+                            <a href="{{ url_for('interviews.add_feedback', interview_id=interview.interview_id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus me-1"></i> Add Feedback
+                            </a>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if interview.feedback %}
+                            {{ interview.feedback|nl2br }}
+                        {% else %}
+                            <div class="alert alert-secondary">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No feedback has been provided for this interview yet.
+                                {% if interview.status == 'scheduled' %}
+                                    <a href="{{ url_for('interviews.add_feedback', interview_id=interview.interview_id) }}" class="alert-link">Add feedback</a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif action == 'feedback' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">Add Interview Feedback</h4>
+            <a href="{{ url_for('interviews.view_interview', interview_id=interview.interview_id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Interview
+            </a>
+        </div>
+        
+        <div class="alert alert-info mb-4">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="fas fa-info-circle fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading">Adding Feedback</h5>
+                    <p class="mb-0">
+                        You are adding feedback for <strong>{{ interview.shortlist.candidate.name }}</strong>'s interview
+                        for the <strong>{{ interview.shortlist.job.job_title }}</strong> position.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post">
+            <div class="row g-3">
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="feedback" class="form-label">Interview Feedback <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="feedback" name="feedback" rows="8" required>{{ interview.feedback if interview.feedback else '' }}</textarea>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Overall Rating <span class="text-danger">*</span></label>
+                        <select class="form-select" id="rating" name="rating" required>
+                            <option value="">Select rating</option>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Good</option>
+                            <option value="3">3 - Average</option>
+                            <option value="2">2 - Below Average</option>
+                            <option value="1">1 - Poor</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Interview Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="completed" {% if interview.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="scheduled" {% if interview.status == 'scheduled' %}selected{% endif %}>Keep as Scheduled</option>
+                            <option value="cancelled" {% if interview.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Feedback
+                    </button>
+                    <a href="{{ url_for('interviews.view_interview', interview_id=interview.interview_id) }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+        
+        <div class="card bg-dark mt-4">
+            <div class="card-header">
+                <h5 class="m-0">Feedback Guidelines</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-2">Suggested Areas to Cover</h6>
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item bg-transparent border-secondary">Technical skills assessment</li>
+                            <li class="list-group-item bg-transparent border-secondary">Communication skills</li>
+                            <li class="list-group-item bg-transparent border-secondary">Problem-solving ability</li>
+                            <li class="list-group-item bg-transparent border-secondary">Cultural fit</li>
+                            <li class="list-group-item bg-transparent border-secondary">Strengths and weaknesses</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-2">Rating Scale</h6>
+                        <ul class="list-group">
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <strong>5 - Excellent:</strong> Exceptional candidate, exceeds all requirements
+                            </li>
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <strong>4 - Good:</strong> Strong candidate, meets all requirements
+                            </li>
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <strong>3 - Average:</strong> Acceptable candidate, meets most requirements
+                            </li>
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <strong>2 - Below Average:</strong> Weak candidate, meets few requirements
+                            </li>
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <strong>1 - Poor:</strong> Not suitable for the position
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Email template modal trigger
+    const generateEmailBtn = document.getElementById('generate-email-btn');
+    if (generateEmailBtn) {
+        generateEmailBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modal = new bootstrap.Modal(document.getElementById('emailTemplateModal'));
+            modal.show();
+        });
+    }
+    
+    // Copy to clipboard functionality
+    const copyBtn = document.querySelector('.modal-footer .btn-primary');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            const textarea = document.querySelector('.modal-body textarea');
+            textarea.select();
+            document.execCommand('copy');
+            
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+            this.classList.remove('btn-primary');
+            this.classList.add('btn-success');
+            
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.classList.remove('btn-success');
+                this.classList.add('btn-primary');
+            }, 2000);
+        });
+    }
+});
+</script>
+{% endblock %}

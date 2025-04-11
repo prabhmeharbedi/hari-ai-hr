@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Add Candidates to Shortlist</h2>
+        <a href="{{ url_for('shortlists.view', shortlist_id=shortlist.id) }}" class="btn btn-secondary">Back to Shortlist</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Job Requirements</h5>
+        </div>
+        <div class="card-body">
+            <h5>{{ shortlist.job.title }}</h5>
+            <p><strong>Department:</strong> {{ shortlist.job.department }}</p>
+            <p><strong>Location:</strong> {{ shortlist.job.location }}</p>
+            <p><strong>Description:</strong> {{ shortlist.job.description }}</p>
+            <p><strong>Requirements:</strong> {{ shortlist.job.requirements }}</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">AI-Matched Candidates</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('shortlists.add_candidates', shortlist_id=shortlist.id) }}">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Match Score</th>
+                                <th>Skills</th>
+                                <th>Experience</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in matched_candidates %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="candidate_ids" value="{{ candidate.id }}" 
+                                           class="form-check-input" {% if candidate.id in shortlist.candidate_ids %}checked{% endif %}>
+                                </td>
+                                <td>{{ candidate.name }}</td>
+                                <td>{{ candidate.email }}</td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ candidate.match_score * 100 }}%"
+                                             aria-valuenow="{{ candidate.match_score * 100 }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ (candidate.match_score * 100)|round(1) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ candidate.skills|join(', ') }}</td>
+                                <td>{{ candidate.experience }} years</td>
+                                <td>
+                                    <a href="{{ url_for('candidates.view', candidate_id=candidate.id) }}" 
+                                       class="btn btn-sm btn-info">View Profile</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">Add Selected Candidates</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">Upload New Candidates</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('upload_candidates', shortlist_id=shortlist.id) }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="candidate_files" class="form-label">Upload Candidate Resumes</label>
+                    <input type="file" class="form-control" id="candidate_files" name="candidate_files" multiple accept=".pdf,.doc,.docx,.txt">
+                    <div class="form-text">You can upload multiple files at once. Supported formats: PDF, DOC, DOCX, TXT</div>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload and Match</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

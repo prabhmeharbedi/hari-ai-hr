@@ -1,0 +1,398 @@
+{% extends "layout.html" %}
+
+{% block title %}Candidate Profile - AI Recruitment System{% endblock %}
+
+{% block page_title %}Candidate Profile{% endblock %}
+{% block page_subtitle %}{{ candidate.name }}{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('candidates') }}" class="btn btn-outline-secondary btn-ripple">
+            <i class="bi bi-arrow-left me-1"></i> Back to Candidates
+        </a>
+        <a href="{{ url_for('view_candidate_insights', candidate_id=candidate.candidate_id) }}" class="btn btn-outline-primary btn-ripple">
+            <i class="bi bi-lightbulb me-1"></i> View Insights
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="row animate-fade-in">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 card-3d-effect">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-person text-primary"></i>
+                        </div>
+                        Personal Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3 candidate-icon" style="width: 64px; height: 64px;">
+                            <i class="bi bi-person-circle fs-1 text-primary"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-0 fw-bold">{{ candidate.name }}</h4>
+                            <p class="text-muted mb-0">{{ candidate.email }}</p>
+                            {% if candidate.phone %}
+                                <p class="text-muted mb-0">{{ candidate.phone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="mb-2 text-secondary"><i class="bi bi-calendar3 me-2"></i>Added on</h6>
+                        <p class="mb-0">{{ candidate.created_at.strftime('%B %d, %Y') }}</p>
+                    </div>
+                    
+                    {% if candidate.jobs %}
+                        <div class="mt-4 scale-in">
+                            <h6 class="mb-2 text-secondary"><i class="bi bi-puzzle me-2"></i>Best Match</h6>
+                            {% set best_match = candidate.jobs|sort(attribute='overall_score', reverse=True)|first %}
+                            <div class="d-flex align-items-center">
+                                {% set score_color = 'success' if best_match.overall_score >= 80 else ('primary' if best_match.overall_score >= 60 else ('warning' if best_match.overall_score >= 40 else 'danger')) %}
+                                <div class="badge bg-{{ score_color }} me-2 match-indicator" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%;">{{ best_match.overall_score }}%</div>
+                                <div>
+                                    <div class="fw-bold">{{ best_match.job.job_title }}</div>
+                                    <div class="small text-muted">{{ best_match.job.department }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8 mb-4">
+            <div class="card h-100 hover-glow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-bezier2 text-info"></i>
+                        </div>
+                        Skills
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if candidate.skills_dict %}
+                        <div class="row stagger-fade-in">
+                            {% for skill, level in candidate.skills_dict.items() %}
+                                <div class="col-md-6 mb-3 animate-on-scroll">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-medium">{{ skill }}</span>
+                                        {% set level_num = level|int if level|int else 50 %}
+                                        {% set level_color = 'success' if level_num >= 80 else ('primary' if level_num >= 60 else ('warning' if level_num >= 40 else 'danger')) %}
+                                        <span class="badge text-bg-{{ level_color }}">{{ level }}</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-{{ level_color }} progress-bar-animated" role="progressbar" style="--width: {{ level_num }}%;" aria-valuenow="{{ level_num }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill fs-4 me-2"></i>
+                                <div>No skills listed for this candidate.</div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 hover-glow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <div class="rounded-circle bg-success bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-briefcase text-success"></i>
+                        </div>
+                        Work Experience
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if candidate.experience_list %}
+                        <div class="timeline p-4 stagger-fade-in">
+                            {% for exp in candidate.experience_list %}
+                                <div class="timeline-item animate-on-scroll">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-bold mb-1">{{ exp.title }}</h6>
+                                        <div class="text-primary mb-1">{{ exp.company }}</div>
+                                        <div class="badge text-bg-secondary mb-2">{{ exp.start_date }} - {{ exp.end_date or 'Present' }}</div>
+                                        {% if exp.description %}
+                                            <p class="mb-2 text-secondary">{{ exp.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                <i class="bi bi-briefcase fs-2 text-secondary"></i>
+                            </div>
+                            <p class="text-muted">No work experience listed for this candidate.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 hover-glow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-mortarboard text-warning"></i>
+                        </div>
+                        Education
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if candidate.education_list %}
+                        <div class="timeline p-4 stagger-fade-in">
+                            {% for edu in candidate.education_list %}
+                                <div class="timeline-item animate-on-scroll">
+                                    <div class="timeline-marker bg-warning"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="fw-bold mb-1">{{ edu.degree }}</h6>
+                                        <div class="text-primary mb-1">{{ edu.institution }}</div>
+                                        <div class="badge text-bg-secondary mb-2">{{ edu.start_year }} - {{ edu.end_year or 'Present' }}</div>
+                                        {% if edu.field_of_study %}
+                                            <p class="mb-1 text-secondary">{{ edu.field_of_study }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                <i class="bi bi-mortarboard fs-2 text-secondary"></i>
+                            </div>
+                            <p class="text-muted">No education history listed for this candidate.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 hover-glow">
+                <div class="card-header">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-award text-primary"></i>
+                        </div>
+                        Certifications
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if candidate.certifications_list %}
+                        <ul class="list-group list-group-flush stagger-fade-in">
+                            {% for cert in candidate.certifications_list %}
+                                <li class="list-group-item px-4 py-3 animate-on-scroll">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-success bg-opacity-10 p-3 me-3">
+                                            <i class="bi bi-award-fill text-success"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">{{ cert.name }}</h6>
+                                            <div class="text-secondary small">{{ cert.issuer }} - {{ cert.year }}</div>
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                <i class="bi bi-award fs-2 text-secondary"></i>
+                            </div>
+                            <p class="text-muted">No certifications listed for this candidate.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 hover-glow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <div class="rounded-circle bg-info bg-opacity-10 p-2 me-2">
+                            <i class="bi bi-puzzle text-info"></i>
+                        </div>
+                        Job Matches
+                    </h5>
+                    <a href="{{ url_for('matches') }}" class="btn btn-sm btn-outline-primary btn-hover-effect">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if candidate.jobs %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">Job Title</th>
+                                        <th class="text-end pe-4">Match Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="stagger-fade-in">
+                                    {% for match in candidate.jobs|sort(attribute='overall_score', reverse=True) %}
+                                        <tr class="animate-on-scroll">
+                                            <td class="ps-4">
+                                                <div class="fw-medium">{{ match.job.job_title }}</div>
+                                                <div class="small text-muted">{{ match.job.department }}</div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <div class="d-flex align-items-center justify-content-end">
+                                                    {% set score_color = 'success' if match.overall_score >= 80 else ('primary' if match.overall_score >= 60 else ('warning' if match.overall_score >= 40 else 'danger')) %}
+                                                    <div class="progress flex-grow-1 me-2" style="height: 8px; max-width: 100px;">
+                                                        <div class="progress-bar bg-{{ score_color }} progress-bar-animated" role="progressbar" style="--width: {{ match.overall_score }}%;" aria-valuenow="{{ match.overall_score }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                    </div>
+                                                    <span class="badge bg-{{ score_color }} match-indicator">{{ match.overall_score }}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                                <i class="bi bi-puzzle fs-2 text-secondary"></i>
+                            </div>
+                            <p class="text-muted">No job matches found for this candidate.</p>
+                            <div class="mt-2">
+                                <a href="{{ url_for('generate_matches') }}" class="btn btn-primary btn-ripple">
+                                    <i class="bi bi-link me-1"></i> Generate Matches
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        z-index: 1;
+    }
+    
+    .timeline-marker:before {
+        content: '';
+        position: absolute;
+        left: 7px;
+        height: calc(100% + 30px);
+        width: 2px;
+        background-color: rgba(var(--bs-primary-rgb), 0.2);
+        z-index: 0;
+    }
+    
+    .timeline-item:last-child .timeline-marker:before {
+        display: none;
+    }
+    
+    .timeline-content {
+        padding: 0 0 0 15px;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate progress bars when visible
+        const progressBars = document.querySelectorAll('.progress-bar-animated');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+        
+        progressBars.forEach(bar => {
+            observer.observe(bar);
+        });
+        
+        // Animate the candidate icon
+        const candidateIcon = document.querySelector('.candidate-icon');
+        if (candidateIcon) {
+            candidateIcon.addEventListener('mouseenter', function() {
+                this.classList.add('pulse');
+            });
+            
+            candidateIcon.addEventListener('mouseleave', function() {
+                this.classList.remove('pulse');
+            });
+        }
+        
+        // Make timeline items interactive
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        timelineItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+                const marker = this.querySelector('.timeline-marker');
+                if (marker) {
+                    marker.style.transform = 'scale(1.2)';
+                }
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                const marker = this.querySelector('.timeline-marker');
+                if (marker) {
+                    marker.style.transform = '';
+                }
+            });
+        });
+        
+        // Initialize hover effects for cards
+        const cards = document.querySelectorAll('.hover-glow');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.3)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
+        });
+    });
+</script>
+{% endblock %}

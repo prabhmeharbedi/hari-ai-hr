@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}Schedule Interview - AI Recruitment System{% endblock %}
+
+{% block page_title %}Schedule Interview{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Schedule New Interview</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('interviews.schedule_interview', shortlist_id=shortlist.shortlist_id) }}">
+                <div class="mb-3">
+                    <label for="shortlist_id" class="form-label">Candidate & Job Details</label>
+                    <div class="form-control-static">
+                        <p class="mb-1"><strong>Candidate:</strong> {{ shortlist[2].name }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ shortlist[2].email }}</p>
+                        <p class="mb-1"><strong>Job Position:</strong> {{ shortlist[1].title }}</p>
+                        <p class="mb-0"><strong>Department:</strong> {{ shortlist[1].department }}</p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="format" class="form-label">Interview Format <span class="text-danger">*</span></label>
+                    <select class="form-select" id="format" name="format" required>
+                        <option value="video">Video Interview</option>
+                        <option value="phone">Phone Interview</option>
+                        <option value="in-person">In-Person Interview</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Interview Date & Time <span class="text-danger">*</span></label>
+                    <p class="form-text mb-2">
+                        Please select a date and time for the interview.
+                    </p>
+                    
+                    <div id="date-options-container">
+                        <div class="input-group mb-2">
+                            <input type="datetime-local" class="form-control" name="date_options" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-text">
+                        Suggested dates: {{ suggested_dates|join(', ') }}
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="special_instructions" class="form-label">Special Instructions</label>
+                    <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3"></textarea>
+                    <div class="form-text">
+                        Add any special instructions or information for the candidate (e.g., what to prepare, who they'll be meeting).
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('interviews.interview_list') }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus"></i> Schedule Interview
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

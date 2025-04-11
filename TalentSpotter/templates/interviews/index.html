@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+
+{% block title %}Interviews - AI Recruitment System{% endblock %}
+
+{% block page_title %}Interviews{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('shortlists.index') }}" class="btn btn-primary">
+            <i class="bi bi-list-stars"></i> View Shortlists to Schedule Interviews
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">All Interviews</h5>
+        </div>
+        <div class="card-body">
+            {% if interviews %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Candidate</th>
+                                <th>Job</th>
+                                <th>Format</th>
+                                <th>Scheduled Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for interview in interviews %}
+                                <tr>
+                                    <td>{{ interview.interview_id }}</td>
+                                    <td>{{ interview.shortlist.candidate.name }}</td>
+                                    <td>{{ interview.shortlist.job.job_title }}</td>
+                                    <td>{{ interview.format|title }}</td>
+                                    <td>{{ interview.scheduled_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <span class="badge {% if interview.status == 'scheduled' %}text-bg-warning{% elif interview.status == 'completed' %}text-bg-success{% elif interview.status == 'cancelled' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">
+                                            {{ interview.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#emailModal" onclick="viewEmail({{ interview.interview_id }})">
+                                                <i class="bi bi-envelope"></i>
+                                            </button>
+                                            <button class="btn btn-outline-success" onclick="changeInterviewStatus({{ interview.interview_id }}, 'completed')">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="changeInterviewStatus({{ interview.interview_id }}, 'cancelled')">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No interviews scheduled. Schedule an interview from the shortlisted candidates to get started.
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('shortlists.index') }}" class="btn btn-primary">
+                        <i class="bi bi-star"></i> Go to Shortlists
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Email Modal -->
+    <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="emailModalLabel">Interview Invitation Email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="emailContent">
+                        <!-- Email content will be loaded here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="copyToClipboard()">Copy to Clipboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function viewEmail(interviewId) {
+        // Mock email content
+        document.getElementById('emailContent').innerHTML = `
+            <div class="card">
+                <div class="card-header">
+                    <strong>Subject:</strong> Interview Invitation - [Job Title]
+                </div>
+                <div class="card-body">
+                    <p>Dear [Candidate Name],</p>
+                    <p>We are pleased to invite you for an interview for the [Job Title] position at [Company Name].</p>
+                    <p><strong>Interview Details:</strong></p>
+                    <ul>
+                        <li><strong>Format:</strong> [Interview Format]</li>
+                        <li><strong>Duration:</strong> [Duration]</li>
+                        <li><strong>Available Dates:</strong></li>
+                        <ul>
+                            <li>[Date Option 1]</li>
+                            <li>[Date Option 2]</li>
+                            <li>[Date Option 3]</li>
+                        </ul>
+                    </ul>
+                    <p>Please let us know which date works best for you by replying to this email.</p>
+                    <p>Best regards,<br>The Recruitment Team<br>[Company Name]</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function copyToClipboard() {
+        const emailContent = document.getElementById('emailContent').innerText;
+        navigator.clipboard.writeText(emailContent).then(() => {
+            alert('Email copied to clipboard!');
+        });
+    }
+
+    function changeInterviewStatus(interviewId, status) {
+        // Implementation for changing interview status
+        alert('Changing status to ' + status + ' for interview ID: ' + interviewId);
+    }
+</script>
+{% endblock %}

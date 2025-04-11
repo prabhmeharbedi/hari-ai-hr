@@ -1,0 +1,159 @@
+{% extends "layout.html" %}
+
+{% block title %}Agent Settings | AI Recruiter{% endblock %}
+
+{% block header_title %}AI Agent Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-4 align-items-center">
+                    <div class="card-title mb-0">Configure AI Agents</div>
+                    <a href="{{ url_for('settings.settings_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Settings
+                    </a>
+                </div>
+                
+                <form method="post" action="{{ url_for('settings.agent_settings') }}">
+                    <div class="row g-4">
+                        <!-- JD Summarizer Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-file-alt text-primary me-2"></i>
+                                        JD Summarizer Agent
+                                    </h5>
+                                    <p class="mb-3 text-light-muted">This agent analyzes job descriptions and extracts structured information.</p>
+                                    
+                                    <div class="mb-3">
+                                        <label for="jd_summarizer_model" class="form-label">Model</label>
+                                        <select class="form-select" id="jd_summarizer_model" name="jd_summarizer_model" required>
+                                            {% for model in available_models %}
+                                                <option value="{{ model }}" {% if model == config.jd_summarizer.model %}selected{% endif %}>
+                                                    {{ model }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">Choose a model for job description analysis.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Recruiter Agent Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-user-tie text-info me-2"></i>
+                                        Recruiter Agent
+                                    </h5>
+                                    <p class="mb-3 text-light-muted">This agent extracts structured information from candidate CVs and calculates match scores.</p>
+                                    
+                                    <div class="mb-3">
+                                        <label for="recruiter_cv_model" class="form-label">CV Analysis Model</label>
+                                        <select class="form-select" id="recruiter_cv_model" name="recruiter_cv_model" required>
+                                            {% for model in available_models %}
+                                                <option value="{{ model }}" {% if model == config.recruiter.cv_analysis_model %}selected{% endif %}>
+                                                    {{ model }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">Model for CV information extraction.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="recruiter_matching_model" class="form-label">Matching Model</label>
+                                        <select class="form-select" id="recruiter_matching_model" name="recruiter_matching_model" required>
+                                            {% for model in available_models %}
+                                                <option value="{{ model }}" {% if model == config.recruiter.matching_model %}selected{% endif %}>
+                                                    {{ model }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">Model for candidate-job matching calculations.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Shortlister Agent Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-clipboard-check text-success me-2"></i>
+                                        Shortlister Agent
+                                    </h5>
+                                    <p class="mb-3 text-light-muted">This agent evaluates match scores and determines if candidates should be shortlisted.</p>
+                                    
+                                    <div class="mb-3">
+                                        <label for="shortlister_model" class="form-label">Model</label>
+                                        <select class="form-select" id="shortlister_model" name="shortlister_model" required>
+                                            {% for model in available_models %}
+                                                <option value="{{ model }}" {% if model == config.shortlister.model %}selected{% endif %}>
+                                                    {{ model }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">Model for shortlisting decisions.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="shortlister_threshold" class="form-label">Shortlisting Threshold</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="shortlister_threshold" name="shortlister_threshold" min="0" max="100" step="1" value="{{ config.shortlister.threshold }}" required>
+                                            <span class="input-group-text">%</span>
+                                        </div>
+                                        <div class="form-text">Minimum match score required for shortlisting.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Scheduler Agent Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-calendar-alt text-warning me-2"></i>
+                                        Scheduler Agent
+                                    </h5>
+                                    <p class="mb-3 text-light-muted">This agent generates personalized interview invitation emails.</p>
+                                    
+                                    <div class="mb-3">
+                                        <label for="scheduler_model" class="form-label">Model</label>
+                                        <select class="form-select" id="scheduler_model" name="scheduler_model" required>
+                                            {% for model in available_models %}
+                                                <option value="{{ model }}" {% if model == config.scheduler.model %}selected{% endif %}>
+                                                    {{ model }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <div class="form-text">Model for email generation.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="company_name" class="form-label">Company Name</label>
+                                        <input type="text" class="form-control" id="company_name" name="company_name" value="{{ config.scheduler.company_name }}" required>
+                                        <div class="form-text">Company name to use in generated emails.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{
+  "models": {
+    "jd_summarizer": "gemma:2b",
+    "recruiter_cv": "phi:2.7b",
+    "recruiter_matching": "phi:2.7b",
+    "shortlister": "tinyllama:1.1b",
+    "scheduler": "flant5:small",
+    "embeddings": "distilbert"
+  },
+  "scoring": {
+    "shortlist_threshold": 70,
+    "weights": {
+      "skills": 0.4,
+      "experience": 0.3,
+      "education": 0.2,
+      "certifications": 0.1
+    }
+  },
+  "company": {
+    "name": "AI Recruitment Solutions",
+    "email": "careers@airecruitment.example",
+    "website": "https://www.airecruitment.example"
+  },
+  "ollama": {
+    "api_base": "http://localhost:11434",
+    "timeout": 30
+  }
+}

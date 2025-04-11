@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+
+{% block title %}Matches - AI Recruitment System{% endblock %}
+
+{% block page_title %}Matches{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('generate_matches') }}" class="btn btn-primary">
+            <i class="bi bi-magic"></i> Generate Matches
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">All Matches</h5>
+        </div>
+        <div class="card-body">
+            {% if matches %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Job</th>
+                                <th>Candidate</th>
+                                <th>Overall Score</th>
+                                <th>Skills Score</th>
+                                <th>Experience</th>
+                                <th>Education</th>
+                                <th>Certifications</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for match in matches %}
+                                <tr>
+                                    <td>{{ match.match_id }}</td>
+                                    <td>{{ match.job.job_title }}</td>
+                                    <td>{{ match.candidate.name }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;" title="{{ match.overall_score }}%">
+                                            <div class="progress-bar {% if match.overall_score >= 80 %}bg-success{% elif match.overall_score >= 60 %}bg-info{% elif match.overall_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ match.overall_score }}%;" 
+                                                aria-valuenow="{{ match.overall_score }}" 
+                                                aria-valuemin="0" 
+                                                aria-valuemax="100">{{ match.overall_score }}%</div>
+                                        </div>
+                                    </td>
+                                    <td>{{ match.skills_score|round|int }}%</td>
+                                    <td>{{ match.experience_score|round|int }}%</td>
+                                    <td>{{ match.education_score|round|int }}%</td>
+                                    <td>{{ match.certifications_score|round|int }}%</td>
+                                    <td>{{ match.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="#" class="btn btn-outline-primary" onclick="viewMatchDetails({{ match.match_id }})">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <button class="btn btn-outline-success" onclick="shortlistCandidate({{ match.match_id }})">
+                                                <i class="bi bi-star"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No matches found. Generate matches between jobs and candidates to get started.
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('generate_matches') }}" class="btn btn-primary">
+                        <i class="bi bi-magic"></i> Generate Matches
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function viewMatchDetails(matchId) {
+        // Implementation for viewing match details
+        alert('Viewing match details for match ID: ' + matchId);
+    }
+
+    function shortlistCandidate(matchId) {
+        // Implementation for shortlisting a candidate
+        alert('Shortlisting candidate for match ID: ' + matchId);
+    }
+</script>
+{% endblock %}

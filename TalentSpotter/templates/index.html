@@ -1,0 +1,315 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - AI Recruitment System{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Overview of recruitment activities{% endblock %}
+
+{% block content %}
+<div class="row g-4 stagger-fade-in">
+    <!-- Stats cards -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card stat-primary p-3">
+            <div class="card-body position-relative">
+                <i class="bi bi-briefcase stat-icon"></i>
+                <h3 class="stat-value">{{ stats.jobs }}</h3>
+                <p class="stat-label mb-0">Active Jobs</p>
+                <div class="mt-2 d-flex align-items-center">
+                    <span class="badge bg-success me-1">+3</span>
+                    <small class="text-success">this week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card stat-success p-3">
+            <div class="card-body position-relative">
+                <i class="bi bi-people stat-icon"></i>
+                <h3 class="stat-value">{{ stats.candidates }}</h3>
+                <p class="stat-label mb-0">Candidates</p>
+                <div class="mt-2 d-flex align-items-center">
+                    <span class="badge bg-success me-1">+12</span>
+                    <small class="text-success">this week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card stat-info p-3">
+            <div class="card-body position-relative">
+                <i class="bi bi-puzzle stat-icon"></i>
+                <h3 class="stat-value">{{ stats.matches }}</h3>
+                <p class="stat-label mb-0">Matches</p>
+                <div class="mt-2 d-flex align-items-center">
+                    <span class="badge bg-warning me-1">+42</span>
+                    <small class="text-warning">this week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card stat-warning p-3">
+            <div class="card-body position-relative">
+                <i class="bi bi-calendar2-check stat-icon"></i>
+                <h3 class="stat-value">{{ stats.interviews }}</h3>
+                <p class="stat-label mb-0">Interviews</p>
+                <div class="mt-2 d-flex align-items-center">
+                    <span class="badge bg-danger me-1">+7</span>
+                    <small class="text-danger">scheduled</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent job openings -->
+    <div class="col-lg-6 col-md-12">
+        <div class="card card-3d-effect h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Recent Job Openings</h5>
+                <a href="{{ url_for('jobs.job_list') }}" class="btn btn-sm btn-outline-primary btn-ripple">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for job in recent_jobs %}
+                    <div class="list-group-item p-3 animate-on-scroll">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ job.title }}</h6>
+                                <p class="mb-0 small text-muted">{{ job.department }} • {{ job.required_experience }} years exp</p>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary rounded-pill me-2">{{ job.matches|length }} candidates</span>
+                                <a href="{{ url_for('jobs.view_job', job_id=job.id) }}" class="btn btn-sm btn-outline-secondary btn-ripple">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item p-3">
+                        <p class="mb-0 text-center text-muted">No job openings found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top candidates -->
+    <div class="col-lg-6 col-md-12">
+        <div class="card card-3d-effect h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Top Candidates</h5>
+                <a href="{{ url_for('candidates.candidate_list') }}" class="btn btn-sm btn-outline-primary btn-ripple">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for candidate in top_candidates %}
+                    <div class="list-group-item p-3 animate-on-scroll candidate-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-person text-light"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">{{ candidate.name }}</h6>
+                                    <p class="mb-0 small text-muted">
+                                        {% if candidate.skills %}
+                                        {% set skills = candidate.skills.split(',') %}
+                                        {% for skill in skills[:3] %}
+                                        <span class="badge bg-primary me-1 hover-glow">{{ skill }}</span>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="match-indicator me-3" data-score="0.85">85%</div>
+                                <a href="{{ url_for('candidates.view_candidate', candidate_id=candidate.id) }}" class="btn btn-sm btn-outline-secondary btn-ripple">Profile</a>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="compatibility-meter" data-score="0.85">
+                                <div class="compatibility-meter-fill"></div>
+                                <div class="compatibility-meter-marker"></div>
+                                <div class="compatibility-meter-label"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item p-3">
+                        <p class="mb-0 text-center text-muted">No candidates found</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recruitment funnel -->
+    <div class="col-lg-7 col-md-12">
+        <div class="card card-3d-effect">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recruitment Funnel</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <h6 class="mb-3">Frontend Developer</h6>
+                        <div class="position-relative mb-4">
+                            <div class="progress mb-1" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated bg-primary" role="progressbar" style="width: 100%;">200 Applications</div>
+                            </div>
+                            <div class="progress mb-1" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated bg-info" role="progressbar" style="width: 65%;">130 Shortlisted</div>
+                            </div>
+                            <div class="progress mb-1" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated bg-success" role="progressbar" style="width: 30%;">60 Interviewed</div>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated bg-warning" role="progressbar" style="width: 5%;">10 Hired</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <h6 class="mb-3">Data Scientist</h6>
+                        <div class="position-relative mb-4">
+                            <div class="progress mb-1" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated progress-bar-primary" role="progressbar" style="width: 100%;">120 Applications</div>
+                            </div>
+                            <div class="progress mb-1" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated progress-bar-info" role="progressbar" style="width: 50%;">60 Shortlisted</div>
+                            </div>
+                            <div class="progress mb-1" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated progress-bar-success" role="progressbar" style="width: 25%;">30 Interviewed</div>
+                            </div>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar progress-bar-animated progress-bar-warning" role="progressbar" style="width: 4%;">5 Hired</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity timeline -->
+    <div class="col-lg-5 col-md-12">
+        <div class="card card-3d-effect">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    <div class="timeline-item animate-on-scroll">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">New candidate: John Doe</h6>
+                            <p class="mb-0 small text-muted">2 hours ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item animate-on-scroll">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Job description updated: UX Designer</h6>
+                            <p class="mb-0 small text-muted">Yesterday</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item animate-on-scroll">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Interview scheduled: Sarah Johnson</h6>
+                            <p class="mb-0 small text-muted">2 days ago</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item animate-on-scroll">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">Match generated: Backend Developer</h6>
+                            <p class="mb-0 small text-muted">3 days ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize dashboard-specific animations and effects
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stat cards on hover
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                const icon = this.querySelector('.stat-icon');
+                if (icon) {
+                    icon.style.transform = 'translateY(-50%) scale(1.1) rotate(5deg)';
+                    icon.style.opacity = '0.25';
+                }
+                
+                const value = this.querySelector('.stat-value');
+                if (value) {
+                    value.style.transform = 'scale(1.05)';
+                    value.style.transition = 'transform 0.3s ease';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                const icon = this.querySelector('.stat-icon');
+                if (icon) {
+                    icon.style.transform = 'translateY(-50%)';
+                    icon.style.opacity = '0.15';
+                }
+                
+                const value = this.querySelector('.stat-value');
+                if (value) {
+                    value.style.transform = '';
+                }
+            });
+        });
+        
+        // Initialize compatibility meters with random values for demo
+        const meters = document.querySelectorAll('.compatibility-meter');
+        meters.forEach(meter => {
+            // Get the score from the data attribute or use a random value
+            let score = parseFloat(meter.getAttribute('data-score'));
+            if (!score) {
+                // Random value between 0.3 and 0.95
+                score = (Math.random() * 0.65 + 0.3).toFixed(2);
+                meter.setAttribute('data-score', score);
+            }
+            
+            const fill = meter.querySelector('.compatibility-meter-fill');
+            const marker = meter.querySelector('.compatibility-meter-marker');
+            const label = meter.querySelector('.compatibility-meter-label');
+            
+            // Set the width of the fill element based on the score
+            if (fill) fill.style.width = `${score * 100}%`;
+            if (marker) marker.style.left = `${score * 100}%`;
+            if (label) {
+                label.style.left = `${score * 100}%`;
+                label.textContent = `${Math.round(score * 100)}%`;
+                
+                // Add color classes based on score
+                if (score >= 0.8) {
+                    label.classList.add('text-success');
+                } else if (score >= 0.6) {
+                    label.classList.add('text-info');
+                } else if (score >= 0.4) {
+                    label.classList.add('text-warning');
+                } else {
+                    label.classList.add('text-danger');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

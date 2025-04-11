@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings | AI Recruiter{% endblock %}
+
+{% block header_title %}System Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="card-title mb-4">Settings Management</div>
+                
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('settings.agent_settings') }}" class="card bg-dark-card h-100 text-decoration-none border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-robot fa-2x text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 text-light">AI Agent Settings</h5>
+                                    </div>
+                                </div>
+                                <p class="mb-0 text-light-muted">Configure the AI models and parameters used by the different agents in the system.</p>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{{ url_for('settings.system_settings') }}" class="card bg-dark-card h-100 text-decoration-none border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-cogs fa-2x text-info"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 text-light">System Settings</h5>
+                                    </div>
+                                </div>
+                                <p class="mb-0 text-light-muted">Adjust system-wide settings including file uploads, pagination, and performance options.</p>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{{ url_for('settings.notification_settings') }}" class="card bg-dark-card h-100 text-decoration-none border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-bell fa-2x text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 text-light">Notification Settings</h5>
+                                    </div>
+                                </div>
+                                <p class="mb-0 text-light-muted">Configure email notifications and alerts for recruitment activities and system events.</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card bg-dark-card border-light">
+                            <div class="card-body">
+                                <h5 class="mb-3">Current Configuration</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-hover mb-0">
+                                        <tbody>
+                                            <tr>
+                                                <th style="width: 25%">JD Summarizer Model</th>
+                                                <td>{{ config.jd_summarizer.model }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>CV Analysis Model</th>
+                                                <td>{{ config.recruiter.cv_analysis_model }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Matching Model</th>
+                                                <td>{{ config.recruiter.matching_model }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shortlister Model</th>
+                                                <td>{{ config.shortlister.model }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Shortlisting Threshold</th>
+                                                <td>{{ config.shortlister.threshold }}%</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Scheduler Model</th>
+                                                <td>{{ config.scheduler.model }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Company Name</th>
+                                                <td>{{ config.scheduler.company_name }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <a href="{{ url_for('settings.export_settings') }}" class="btn btn-outline-primary" target="_blank">
+                                        <i class="fas fa-download me-2"></i> Export Configuration
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

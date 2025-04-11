@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+
+{% block title %}Reports Dashboard | AI Recruiter{% endblock %}
+
+{% block header_title %}Reports Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-title">Total Jobs</div>
+                <div class="d-flex align-items-center">
+                    <div class="card-value">{{ metrics.total_jobs }}</div>
+                </div>
+                <div class="mt-3">
+                    <i class="fas fa-briefcase text-primary me-1"></i>
+                    <span class="text-light-muted">Active job postings</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-title">Total Candidates</div>
+                <div class="d-flex align-items-center">
+                    <div class="card-value">{{ metrics.total_candidates }}</div>
+                </div>
+                <div class="mt-3">
+                    <i class="fas fa-user-tie text-info me-1"></i>
+                    <span class="text-light-muted">Registered candidates</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-title">Total Matches</div>
+                <div class="d-flex align-items-center">
+                    <div class="card-value">{{ metrics.total_matches }}</div>
+                </div>
+                <div class="mt-3">
+                    <i class="fas fa-chart-bar text-success me-1"></i>
+                    <span class="text-light-muted">AI-generated matches</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-title">Shortlisted</div>
+                <div class="d-flex align-items-center">
+                    <div class="card-value">{{ metrics.total_shortlisted }}</div>
+                </div>
+                <div class="mt-3">
+                    <i class="fas fa-clipboard-check text-warning me-1"></i>
+                    <span class="text-light-muted">Candidates in pipeline</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="card-title mb-0">Pipeline Overview</div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-dark dropdown-toggle" type="button" id="pipelineTimeDropdown" data-bs-toggle="dropdown">
+                            All Time
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="pipelineTimeDropdown">
+                            <li><a class="dropdown-item active" href="#">All Time</a></li>
+                            <li><a class="dropdown-item" href="#">This Month</a></li>
+                            <li><a class="dropdown-item" href="#">This Week</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="pipelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="card-title mb-0">Match Score Distribution</div>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-dark dropdown-toggle" type="button" id="matchScoreDropdown" data-bs-toggle="dropdown">
+                            All Jobs
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="matchScoreDropdown">
+                            <li><a class="dropdown-item active" href="#">All Jobs</a></li>
+                            <li><a class="dropdown-item" href="#">Software Developer</a></li>
+                            <li><a class="dropdown-item" href="#">Data Scientist</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="matchScoreChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="card-title mb-0">Time-to-Hire Analysis</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timeToHireChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-3">
+                    <div class="card-title mb-0">Job Efficiency</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="jobEfficiencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Links -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="card-title mb-3">Detailed Reports</div>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('reports.job_metrics') }}" class="card bg-dark-card h-100 text-decoration-none border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-briefcase fa-2x text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 text-light">Job Metrics</h5>
+                                        <p class="mb-0 text-light-muted small">Detailed performance metrics for each job</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('reports.candidate_pipeline') }}" class="card bg-dark-card h-100 text-decoration-none border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-user-tie fa-2x text-info"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 text-light">Candidate Pipeline</h5>
+                                        <p class="mb-0 text-light-muted small">Candidates at each stage of the process</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('reports.matching_quality') }}" class="card bg-dark-card h-100 text-decoration-none border-light">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-chart-bar fa-2x text-success"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 text-light">Matching Quality</h5>
+                                        <p class="mb-0 text-light-muted small">Analysis of matching algorithm performance</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="card-title mb-3">Recent Activity</div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover data-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Details</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in recent_activity.new_candidates %}
+                            <tr>
+                                <td><span class="badge bg-info">New Candidate</span></td>
+                                <td>{{ candidate.name }}</td>
+                                <td>{{ candidate.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('candidates.view_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-sm btn-outline-info">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            {% for match, job, candidate in recent_activity.new_matches %}
+                            <tr>
+                                <td><span class="badge bg-success">New Match</span></td>
+                                <td>{{ candidate.name }} matched with {{ job.job_title }} (Score: {{ "%.0f"|format(match.overall_score) }}%)</td>
+                                <td>{{ match.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('matches.view_match', match_id=match.match_id) }}" class="btn btn-sm btn-outline-success">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            {% for interview in recent_activity.upcoming_interviews %}
+                            <tr>
+                                <td><span class="badge bg-warning">Upcoming Interview</span></td>
+                                <td>{{ interview.shortlist.candidate.name }} for {{ interview.shortlist.job.job_title }}</td>
+                                <td>{{ interview.scheduled_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('interviews.view_interview', interview_id=interview.interview_id) }}" class="btn btn-sm btn-outline-warning">View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load chart data
+        loadChartData('pipeline-overview', 'pipelineChart', 'doughnut');
+        loadChartData('match-score-distribution', 'matchScoreChart', 'bar');
+        loadChartData('time-to-hire', 'timeToHireChart', 'bar');
+        loadChartData('job-efficiency', 'jobEfficiencyChart', 'bar');
+    });
+    
+    function loadChartData(chartType, chartElementId, chartStyle) {
+        fetch(`/reports/chart-data/${chartType}`)
+            .then(response => response.json())
+            .then(data => {
+                createChart(chartElementId, chartStyle, data);
+            })
+            .catch(error => {
+                console.error('Error fetching chart data:', error);
+            });
+    }
+    
+    function createChart(elementId, type, data) {
+        const ctx = document.getElementById(elementId).getContext('2d');
+        
+        let options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: type === 'doughnut' ? 'right' : 'top'
+                }
+            }
+        };
+        
+        if (type === 'bar') {
+            options.scales = {
+                y: {
+                    beginAtZero: true
+                }
+            };
+        }
+        
+        new Chart(ctx, {
+            type: type,
+            data: data,
+            options: options
+        });
+    }
+</script>
+{% endblock %}

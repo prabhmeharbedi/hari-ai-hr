@@ -1,0 +1,1230 @@
+import os
+import logging
+from datetime import datetime
+from flask import Flask, render_template, flash, redirect, url_for, request, jsonify, session
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+# Create Flask app instance
+app = Flask(__name__)
+app.secret_key = os.environ.get("SESSION_SECRET", "dev_secret_key")
+
+# Configure database
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_recycle": 300,
+    "pool_pre_ping": True,
+}
+
+# Import database and models
+from database import db
+db.init_app(app)
+
+# Import models after db is initialized
+from models import JobDescription, Candidate, MatchScore, Shortlist, Interview
+
+# Create database tables
+with app.app_context():
+    db.create_all()
+    logger.info("Database initialized")
+
+# Routes
+@app.route('/')
+def index():
+    """Main dashboard page"""
+    logger.debug("Loading index page")
+    
+    # Gather statistics for the dashboard
+    stats = {
+        'active_jobs': JobDescription.query.filter_by(status='active').count(),
+        'candidates': Candidate.query.count(),
+        'shortlisted': Shortlist.query.count(),
+        'interviews': Interview.query.count()
+    }
+    
+    # Get recent jobs
+    recent_jobs = JobDescription.query.order_by(JobDescription.created_at.desc()).limit(5).all()
+    
+    # Get top matches
+    top_matches = MatchScore.query.order_by(MatchScore.overall_score.desc()).limit(5).all()
+    
+    # Get upcoming interviews
+    upcoming_interviews = Interview.query.filter_by(status='scheduled').order_by(Interview.scheduled_date).limit(5).all()
+    
+    # Create placeholder for recent activity
+    recent_activity = []
+    
+    return render_template('index.html', 
+                          stats=stats,
+                          recent_jobs=recent_jobs,
+                          top_matches=top_matches,
+                          upcoming_interviews=upcoming_interviews,
+                          recent_activity=recent_activity)
+
+@app.route('/jobs')
+def jobs():
+    """Job descriptions listing page"""
+    jobs = JobDescription.query.all()
+    return render_template('jobs/index.html', jobs=jobs)
+
+@app.route('/jobs/add', methods=['GET', 'POST'])
+def add_job():
+    """Add a new job description"""
+    if request.method == 'POST':
+        # Get form data
+        job_title = request.form.get('job_title')
+        department = request.form.get('department')
+        required_experience = request.form.get('required_experience')
+        required_education = request.form.get('required_education')
+        skills_json = request.form.get('skills', '{"technical_skills":[],"soft_skills":[]}')
+        job_responsibilities = request.form.get('job_responsibilities')
+        status = request.form.get('status', 'active')
+        
+        # Validate required fields
+        if not job_title:
+            flash('Job title is required!', 'danger')
+            return render_template('jobs/add.html')
+        
+        # Convert empty strings to None
+        if not required_experience:
+            required_experience = None
+        else:
+            try:
+                required_experience = int(required_experience)
+            except ValueError:
+                required_experience = None
+        
+        # Create new job description
+        new_job = JobDescription(
+            job_title=job_title,
+            department=department,
+            required_experience=required_experience,
+            required_education=required_education,
+            required_skills=skills_json,
+            job_responsibilities=job_responsibilities,
+            status=status
+        )
+        
+        try:
+            # Add and commit to database
+            db.session.add(new_job)
+            db.session.commit()
+            flash('Job added successfully!', 'success')
+            return redirect(url_for('jobs'))
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error adding job: {str(e)}")
+            flash(f'Error adding job: {str(e)}', 'danger')
+    
+    # GET request or form validation failed
+    return render_template('jobs/add.html')
+
+@app.route('/jobs/<int:job_id>')
+def view_job(job_id):
+    """View a job description"""
+    job = JobDescription.query.get_or_404(job_id)
+    return render_template('jobs/view.html', job=job)
+
+@app.route('/jobs/<int:job_id>/edit', methods=['GET', 'POST'])
+def edit_job(job_id):
+    """Edit a job description"""
+    job = JobDescription.query.get_or_404(job_id)
+    
+    if request.method == 'POST':
+        # Get form data
+        job_title = request.form.get('job_title')
+        department = request.form.get('department')
+        required_experience = request.form.get('required_experience')
+        required_education = request.form.get('required_education')
+        skills_json = request.form.get('skills', '{"technical_skills":[],"soft_skills":[]}')
+        job_responsibilities = request.form.get('job_responsibilities')
+        status = request.form.get('status', 'active')
+        
+        # Validate required fields
+        if not job_title:
+            flash('Job title is required!', 'danger')
+            return render_template('jobs/edit.html', job=job)
+        
+        # Convert empty strings to None
+        if not required_experience:
+            required_experience = None
+        else:
+            try:
+                required_experience = int(required_experience)
+            except ValueError:
+                required_experience = None
+        
+        try:
+            # Update job fields
+            job.job_title = job_title
+            job.department = department
+            job.required_experience = required_experience
+            job.required_education = required_education
+            job.required_skills = skills_json
+            job.job_responsibilities = job_responsibilities
+            job.status = status
+            
+            # Save changes
+            db.session.commit()
+            flash('Job updated successfully!', 'success')
+            return redirect(url_for('view_job', job_id=job_id))
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating job: {str(e)}")
+            flash(f'Error updating job: {str(e)}', 'danger')
+    
+    return render_template('jobs/edit.html', job=job)
+
+@app.route('/jobs/<int:job_id>/delete', methods=['POST'])
+def delete_job(job_id):
+    """Delete a job description"""
+    job = JobDescription.query.get_or_404(job_id)
+    
+    try:
+        # Delete associated match scores, shortlists, and interviews
+        match_scores = MatchScore.query.filter_by(jd_id=job_id).all()
+        for match in match_scores:
+            db.session.delete(match)
+        
+        shortlists = Shortlist.query.filter_by(jd_id=job_id).all()
+        for shortlist in shortlists:
+            interviews = Interview.query.filter_by(shortlist_id=shortlist.shortlist_id).all()
+            for interview in interviews:
+                db.session.delete(interview)
+            db.session.delete(shortlist)
+        
+        # Delete the job
+        db.session.delete(job)
+        db.session.commit()
+        
+        flash('Job deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting job: {str(e)}")
+        flash(f'Error deleting job: {str(e)}', 'danger')
+    
+    return redirect(url_for('jobs'))
+
+@app.route('/candidates')
+def candidates():
+    """Candidates listing page"""
+    candidates = Candidate.query.all()
+    return render_template('candidates/index.html', candidates=candidates)
+
+@app.route('/candidates/add', methods=['GET', 'POST'])
+def add_candidate():
+    """Add a new candidate"""
+    if request.method == 'POST':
+        # Logic to add a new candidate
+        flash('Candidate added successfully!', 'success')
+        return redirect(url_for('candidates'))
+    return render_template('candidates/add.html')
+
+@app.route('/candidates/upload', methods=['GET', 'POST'])
+def upload_candidates():
+    """Upload multiple candidate CVs"""
+    if request.method == 'POST':
+        # Logic to handle bulk CV upload
+        flash('Candidates uploaded successfully!', 'success')
+        return redirect(url_for('candidates'))
+    return render_template('candidates/upload.html')
+
+@app.route('/candidates/<int:candidate_id>')
+def view_candidate(candidate_id):
+    """View a candidate profile"""
+    candidate = Candidate.query.get_or_404(candidate_id)
+    return render_template('candidates/view.html', candidate=candidate)
+
+@app.route('/candidates/<int:candidate_id>/insights')
+def view_candidate_insights(candidate_id):
+    """View AI-generated insights for a candidate"""
+    candidate = Candidate.query.get_or_404(candidate_id)
+    
+    # Check for cached insights in session
+    session_key = f'insights_candidate_{candidate_id}'
+    insights = session.get(session_key)
+    
+    # If no cached insights, try to make a direct call to get cached insights
+    if not insights:
+        try:
+            # Make a direct call to get insights
+            from agents import get_insights_generator
+            
+            # Prepare candidate data for the agent
+            candidate_data = {
+                'name': candidate.name,
+                'email': candidate.email,
+                'phone': candidate.phone,
+                'education': candidate.education_list,
+                'experience': candidate.experience_list,
+                'skills': candidate.skills_dict,
+                'certifications': candidate.certifications_list,
+                'cv_text': candidate.cv_text
+            }
+            
+            # Try to get the insights from the API using a direct call
+            provider = session.get('llm_provider', 'ollama')
+            model_name = session.get('insights_generator_model_name')
+            
+            agent = get_insights_generator(model_name=model_name, provider=provider)
+            
+            if agent:
+                # This call will be expensive, so we'll only do it if requested explicitly via the API
+                # insights = agent.generate_insights(candidate_data)
+                # Store in session
+                # session[session_key] = insights
+                insights = None
+        except Exception as e:
+            logger.error(f"Error getting insights: {str(e)}")
+            insights = None
+    
+    return render_template('candidates/insights.html', candidate=candidate, insights=insights)
+
+@app.route('/matches')
+def matches():
+    """Job-candidate matches listing page"""
+    matches = MatchScore.query.all()
+    return render_template('matches/index.html', matches=matches)
+
+@app.route('/matches/generate', methods=['GET', 'POST'])
+def generate_matches():
+    """Generate matches between jobs and candidates"""
+    if request.method == 'POST':
+        # Get form data
+        job_ids = request.form.getlist('job_ids')
+        candidate_ids = request.form.getlist('candidate_ids')
+        
+        if not job_ids or not candidate_ids:
+            flash('Please select at least one job and one candidate to match.', 'danger')
+            return redirect(url_for('generate_matches'))
+        
+        # Import the matcher agent
+        try:
+            from agents import get_matcher
+        except ImportError as e:
+            logger.error(f"Error importing agent: {str(e)}")
+            flash('Agent modules not available. Please check if the agents package is installed correctly.', 'danger')
+            return redirect(url_for('generate_matches'))
+        
+        try:
+            # Convert IDs to integers
+            job_ids = [int(jid) for jid in job_ids]
+            candidate_ids = [int(cid) for cid in candidate_ids]
+            
+            # Get the jobs and candidates
+            jobs = JobDescription.query.filter(JobDescription.jd_id.in_(job_ids)).all()
+            candidates = Candidate.query.filter(Candidate.candidate_id.in_(candidate_ids)).all()
+            
+            # Import the matcher agent
+            from agents import get_matcher
+            
+            # Get matcher agent with provider settings
+            provider = session.get('llm_provider', 'ollama')
+            model_name = session.get('matcher_model_name')
+            
+            matcher = get_matcher(model_name=model_name, provider=provider)
+            
+            if not matcher:
+                flash('Failed to initialize the Matcher agent. Check the logs for details.', 'danger')
+                return redirect(url_for('generate_matches'))
+            
+            # Counter for successful matches
+            match_count = 0
+            
+            for job in jobs:
+                # Prepare job requirements dict
+                job_requirements = {
+                    'job_title': job.job_title,
+                    'department': job.department,
+                    'required_experience': job.required_experience,
+                    'required_education': job.required_education,
+                    'required_skills': job.skills_dict,
+                    'job_responsibilities': job.responsibilities_list
+                }
+                
+                for candidate in candidates:
+                    # Prepare candidate profile dict
+                    candidate_profile = {
+                        'name': candidate.name,
+                        'education': candidate.education_list,
+                        'experience': candidate.experience_list,
+                        'skills': candidate.skills_dict,
+                        'certifications': candidate.certifications_list
+                    }
+                    
+                    # Check if a match already exists
+                    existing_match = MatchScore.query.filter_by(
+                        jd_id=job.jd_id, 
+                        candidate_id=candidate.candidate_id
+                    ).first()
+                    
+                    if existing_match:
+                        logger.info(f"Match already exists for job {job.jd_id} and candidate {candidate.candidate_id}")
+                        continue
+                    
+                    # Generate match scores
+                    match_result = matcher.evaluate_match(job_requirements, candidate_profile)
+                    
+                    # Check if there was an error
+                    if 'error' in match_result:
+                        logger.error(f"Error matching job {job.jd_id} with candidate {candidate.candidate_id}: {match_result.get('message', 'Unknown error')}")
+                        continue
+                    
+                    # Create a new match score record
+                    new_match = MatchScore(
+                        jd_id=job.jd_id,
+                        candidate_id=candidate.candidate_id,
+                        overall_score=match_result['overall_match']['score'],
+                        skills_score=match_result['skills_match']['score'],
+                        experience_score=match_result['experience_match']['score'],
+                        education_score=match_result['education_match']['score'],
+                        certifications_score=match_result['certification_match']['score']
+                    )
+                    
+                    db.session.add(new_match)
+                    match_count += 1
+            
+            # Commit all matches
+            db.session.commit()
+            
+            if match_count > 0:
+                flash(f'Successfully generated {match_count} matches!', 'success')
+            else:
+                flash('No new matches were generated. All selected combinations may already exist.', 'info')
+                
+            return redirect(url_for('matches'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error generating matches: {str(e)}")
+            flash(f'Error generating matches: {str(e)}', 'danger')
+            return redirect(url_for('generate_matches'))
+    
+    # GET request - display form
+    jobs = JobDescription.query.filter_by(status='active').all()
+    candidates = Candidate.query.all()
+    
+    return render_template('matches/generate.html', jobs=jobs, candidates=candidates)
+
+@app.route('/shortlists')
+def shortlists():
+    """Shortlisted candidates listing page"""
+    shortlists = Shortlist.query.all()
+    return render_template('shortlists/index.html', shortlists=shortlists)
+
+@app.route('/interviews')
+def interviews():
+    """Interviews listing page"""
+    interviews = Interview.query.all()
+    return render_template('interviews/index.html', interviews=interviews)
+
+@app.route('/interviews/schedule', methods=['GET', 'POST'])
+def schedule_interview():
+    """Schedule an interview for a shortlisted candidate"""
+    if request.method == 'POST':
+        # Get form data
+        shortlist_id = request.form.get('shortlist_id')
+        format = request.form.get('format', '')
+        date_options = request.form.getlist('date_options')
+        special_instructions = request.form.get('special_instructions', '')
+        
+        if not shortlist_id or not format or not date_options:
+            flash('Please fill in all required fields', 'danger')
+            return redirect(url_for('schedule_interview'))
+        
+        # Import the scheduler agent
+        try:
+            from agents import get_scheduler
+        except ImportError as e:
+            logger.error(f"Error importing agent: {str(e)}")
+            flash('Agent modules not available. Please check if the agents package is installed correctly.', 'danger')
+            return redirect(url_for('schedule_interview'))
+        
+        try:
+            # Get the shortlist
+            shortlist = Shortlist.query.get(shortlist_id)
+            
+            if not shortlist:
+                flash('Shortlist not found', 'danger')
+                return redirect(url_for('schedule_interview'))
+            
+            # Get the job and candidate
+            job = JobDescription.query.get(shortlist.jd_id)
+            candidate = Candidate.query.get(shortlist.candidate_id)
+            
+            if not job or not candidate:
+                flash('Job or candidate not found', 'danger')
+                return redirect(url_for('schedule_interview'))
+            
+            # Check if an interview already exists
+            existing_interview = Interview.query.filter_by(shortlist_id=shortlist_id).first()
+            
+            if existing_interview:
+                flash('An interview already exists for this shortlisted candidate', 'warning')
+                return redirect(url_for('interviews'))
+            
+            # Import the scheduler agent
+            from agents import get_scheduler
+            
+            # Get scheduler agent with provider settings
+            provider = session.get('llm_provider', 'ollama')
+            model_name = session.get('scheduler_model_name')
+            
+            scheduler = get_scheduler(model_name=model_name, provider=provider)
+            
+            if not scheduler:
+                flash('Failed to initialize the Scheduler agent. Check the logs for details.', 'danger')
+                return redirect(url_for('schedule_interview'))
+            
+            # Generate interview invitation
+            invitation_result = scheduler.generate_interview_invitation(
+                job_title=job.job_title,
+                company_name="Company Name",  # This should be from settings in a real app
+                candidate_name=candidate.name,
+                interview_format=format,
+                date_options=date_options,
+                duration="1 hour",  # This could be from a form field
+                special_instructions=special_instructions
+            )
+            
+            # Check if there was an error
+            if 'error' in invitation_result:
+                logger.error(f"Error generating interview invitation: {invitation_result.get('message', 'Unknown error')}")
+                flash(f"Error generating interview invitation: {invitation_result.get('message', 'Unknown error')}", 'danger')
+                return redirect(url_for('schedule_interview'))
+            
+            # Create a new interview record
+            # For simplicity, use the first date option as the scheduled date
+            scheduled_date = datetime.strptime(date_options[0], '%Y-%m-%d %H:%M')
+            
+            new_interview = Interview(
+                shortlist_id=shortlist_id,
+                scheduled_date=scheduled_date,
+                format=format,
+                status='scheduled'
+            )
+            
+            db.session.add(new_interview)
+            
+            # Update the shortlist status
+            shortlist.status = 'interviewed'
+            
+            db.session.commit()
+            
+            # Success message with the generated invitation
+            flash('Interview scheduled successfully!', 'success')
+            
+            # Store the invitation in the session to display it on the next page
+            session['invitation_email'] = invitation_result['email_content']
+            
+            return redirect(url_for('interviews'))
+            
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error scheduling interview: {str(e)}")
+            flash(f'Error scheduling interview: {str(e)}', 'danger')
+            return redirect(url_for('schedule_interview'))
+    
+    # GET request - display form
+    shortlists = Shortlist.query.filter_by(status='pending').all()
+    
+    # Prepare data for displaying shortlisted candidates with job titles
+    shortlist_data = []
+    for shortlist in shortlists:
+        job = JobDescription.query.get(shortlist.jd_id)
+        candidate = Candidate.query.get(shortlist.candidate_id)
+        
+        if job and candidate:
+            shortlist_data.append({
+                'shortlist_id': shortlist.shortlist_id,
+                'job_title': job.job_title,
+                'candidate_name': candidate.name
+            })
+    
+    return render_template('interviews/schedule.html', shortlists=shortlist_data)
+
+@app.route('/analytics')
+def analytics():
+    """Analytics dashboard page"""
+    return render_template('analytics/index.html')
+
+@app.route('/settings', methods=['GET', 'POST'])
+def settings():
+    """Settings page with LLM model configuration"""
+    # Import the agents module
+    import agents
+    
+    # Handle POST request (save settings)
+    if request.method == 'POST':
+        # Get form data
+        provider = request.form.get('model_provider')
+        model_name = request.form.get('model_name')
+        
+        # Validate provider
+        if provider not in ['ollama', 'openai']:
+            flash('Invalid model provider. Must be "ollama" or "openai".', 'danger')
+            return redirect(url_for('settings'))
+        
+        # Validate model name
+        if not model_name or len(model_name) < 1:
+            flash('Invalid model name.', 'danger')
+            return redirect(url_for('settings'))
+        
+        # Check if this is OpenAI and we need the API key
+        if provider == 'openai' and not os.environ.get('OPENAI_API_KEY'):
+            flash('OpenAI API key is required to use OpenAI models. Please set the OPENAI_API_KEY environment variable.', 'warning')
+        
+        # Set the default provider and model
+        agents.set_default_provider(provider)
+        agents.set_default_model(provider, model_name)
+        
+        # Flash success message
+        flash(f'Settings updated. Using {provider} with model {model_name}.', 'success')
+        
+        # Redirect to avoid form resubmission
+        return redirect(url_for('settings'))
+    
+    # For GET request, get current settings
+    current_provider = agents.DEFAULT_MODEL_PROVIDER
+    current_model = agents.DEFAULT_MODEL_NAME.get(current_provider, '')
+    
+    # Get available models
+    available_models = {
+        'ollama': ['phi-2', 'llama2', 'mistral', 'gemma-2b', 'tinyllama-1.1B'],
+        'openai': ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo']
+    }
+    
+    # Render the template with current settings
+    return render_template(
+        'settings/index.html', 
+        current_provider=current_provider,
+        current_model=current_model,
+        available_models=available_models,
+        has_openai_key=bool(os.environ.get('OPENAI_API_KEY'))
+    )
+
+# API Routes
+@app.route('/api/jobs', methods=['GET'])
+def api_jobs():
+    """API endpoint to get all jobs"""
+    jobs = JobDescription.query.all()
+    result = []
+    for job in jobs:
+        result.append({
+            'id': job.jd_id,
+            'title': job.job_title,
+            'department': job.department,
+            'required_experience': job.required_experience,
+            'status': job.status
+        })
+    return jsonify(result)
+
+@app.route('/api/candidates', methods=['GET'])
+def api_candidates():
+    """API endpoint to get all candidates"""
+    candidates = Candidate.query.all()
+    result = []
+    for candidate in candidates:
+        result.append({
+            'id': candidate.candidate_id,
+            'name': candidate.name,
+            'email': candidate.email
+        })
+    return jsonify(result)
+
+@app.route('/api/match', methods=['POST'])
+def api_match():
+    """API endpoint to match a specific job with a specific candidate"""
+    data = request.json
+    
+    if not data or 'job_id' not in data or 'candidate_id' not in data:
+        return jsonify({'error': 'Missing job_id or candidate_id'}), 400
+    
+    job_id = data['job_id']
+    candidate_id = data['candidate_id']
+    
+    # Import the matcher agent
+    try:
+        from agents import get_matcher
+    except ImportError as e:
+        logger.error(f"Error importing agent: {str(e)}")
+        return jsonify({
+            'error': 'Agent module not available',
+            'message': 'Failed to import the agent module. Please check if the agents package is installed correctly.'
+        }), 500
+    
+    try:
+        # Get the job and candidate
+        job = JobDescription.query.get(job_id)
+        candidate = Candidate.query.get(candidate_id)
+        
+        if not job or not candidate:
+            return jsonify({'error': 'Job or candidate not found'}), 404
+        
+        # Check if a match already exists
+        existing_match = MatchScore.query.filter_by(jd_id=job_id, candidate_id=candidate_id).first()
+        
+        if existing_match:
+            # Return the existing match
+            return jsonify({
+                'match_id': existing_match.match_id,
+                'job_id': existing_match.jd_id,
+                'candidate_id': existing_match.candidate_id,
+                'overall_score': existing_match.overall_score,
+                'skills_score': existing_match.skills_score,
+                'experience_score': existing_match.experience_score,
+                'education_score': existing_match.education_score,
+                'certifications_score': existing_match.certifications_score,
+                'created_at': existing_match.created_at.isoformat(),
+                'exists': True
+            })
+        
+        # Get the matcher agent with provider settings
+        from agents import get_matcher
+        
+        # Get provider settings from request or default
+        provider = data.get('provider') or session.get('llm_provider', 'ollama')
+        model_name = data.get('model_name') or session.get('matcher_model_name')
+        
+        matcher = get_matcher(model_name=model_name, provider=provider)
+        
+        if not matcher:
+            logger.error("Failed to get Matcher agent")
+            return jsonify({
+                'error': 'Agent initialization failed',
+                'message': 'Failed to initialize the Matcher agent. Check the logs for details.'
+            }), 500
+        
+        # Prepare job requirements dict
+        job_requirements = {
+            'job_title': job.job_title,
+            'department': job.department,
+            'required_experience': job.required_experience,
+            'required_education': job.required_education,
+            'required_skills': job.skills_dict,
+            'job_responsibilities': job.responsibilities_list
+        }
+        
+        # Prepare candidate profile dict
+        candidate_profile = {
+            'name': candidate.name,
+            'education': candidate.education_list,
+            'experience': candidate.experience_list,
+            'skills': candidate.skills_dict,
+            'certifications': candidate.certifications_list
+        }
+        
+        # Generate match scores
+        match_result = matcher.evaluate_match(job_requirements, candidate_profile)
+        
+        # Check if there was an error
+        if 'error' in match_result:
+            logger.error(f"Error matching job {job_id} with candidate {candidate_id}: {match_result.get('message', 'Unknown error')}")
+            return jsonify(match_result), 500
+        
+        # Create a new match score record
+        new_match = MatchScore(
+            jd_id=job_id,
+            candidate_id=candidate_id,
+            overall_score=match_result['overall_match']['score'],
+            skills_score=match_result['skills_match']['score'],
+            experience_score=match_result['experience_match']['score'],
+            education_score=match_result['education_match']['score'],
+            certifications_score=match_result['certification_match']['score']
+        )
+        
+        db.session.add(new_match)
+        db.session.commit()
+        
+        # Return the match details
+        return jsonify({
+            'match_id': new_match.match_id,
+            'job_id': new_match.jd_id,
+            'candidate_id': new_match.candidate_id,
+            'overall_score': new_match.overall_score,
+            'skills_score': new_match.skills_score,
+            'experience_score': new_match.experience_score,
+            'education_score': new_match.education_score,
+            'certifications_score': new_match.certifications_score,
+            'created_at': new_match.created_at.isoformat(),
+            'exists': False,
+            'details': {
+                'skills_match': match_result['skills_match'],
+                'experience_match': match_result['experience_match'],
+                'education_match': match_result['education_match'],
+                'certification_match': match_result['certification_match'],
+                'overall_match': match_result['overall_match']
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error in api_match endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Matching failed',
+            'message': f'Failed to match job with candidate: {str(e)}'
+        }), 500
+
+@app.route('/api/analyze-cv', methods=['POST'])
+def analyze_cv():
+    """API endpoint to analyze a CV using the CV Analyzer agent"""
+    data = request.json
+    
+    if not data or 'cv_text' not in data:
+        return jsonify({'error': 'No CV text provided'}), 400
+    
+    cv_text = data['cv_text']
+    
+    # Import the CV Analyzer agent
+    try:
+        from agents import get_cv_analyzer
+    except ImportError as e:
+        logger.error(f"Error importing agent: {str(e)}")
+        return jsonify({
+            'error': 'Agent module not available',
+            'message': 'Failed to import the agent module. Please check if the agents package is installed correctly.'
+        }), 500
+    
+    try:
+        # Get the CV Analyzer agent with provider settings
+        from agents import get_cv_analyzer
+        
+        # Get provider settings from request or default
+        provider = data.get('provider') or session.get('llm_provider', 'ollama')
+        model_name = data.get('model_name') or session.get('cv_analyzer_model_name')
+        
+        agent = get_cv_analyzer(model_name=model_name, provider=provider)
+        
+        if not agent:
+            logger.error("Failed to get CV Analyzer agent")
+            return jsonify({
+                'error': 'Agent initialization failed',
+                'message': 'Failed to initialize the CV Analyzer agent. Check the logs for details.'
+            }), 500
+        
+        # Analyze the CV
+        analysis_result = agent.analyze_cv(cv_text)
+        
+        # Check if there was an error
+        if 'error' in analysis_result:
+            logger.error(f"Error analyzing CV: {analysis_result.get('message', 'Unknown error')}")
+            return jsonify(analysis_result), 500
+        
+        return jsonify(analysis_result)
+    
+    except Exception as e:
+        logger.error(f"Error in analyze_cv endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Analysis failed',
+            'message': f'Failed to analyze CV: {str(e)}'
+        }), 500
+
+@app.route('/api/analyze-job', methods=['POST'])
+def analyze_job():
+    """API endpoint to analyze a job description using the JD Summarizer agent"""
+    data = request.json
+    
+    if not data or 'job_description' not in data:
+        return jsonify({'error': 'No job description provided'}), 400
+    
+    job_description = data['job_description']
+    
+    # Import the JD Summarizer agent
+    try:
+        from agents import get_jd_summarizer
+    except ImportError as e:
+        logger.error(f"Error importing agent: {str(e)}")
+        return jsonify({
+            'error': 'Agent module not available',
+            'message': 'Failed to import the agent module. Please check if the agents package is installed correctly.'
+        }), 500
+    
+    try:
+        # Get the JD Summarizer agent with provider settings
+        from agents import get_jd_summarizer
+        
+        # Get provider settings from request or default
+        provider = data.get('provider') or session.get('llm_provider', 'ollama')
+        model_name = data.get('model_name') or session.get('jd_summarizer_model_name')
+        
+        agent = get_jd_summarizer(model_name=model_name, provider=provider)
+        
+        if not agent:
+            logger.error("Failed to get JD Summarizer agent")
+            return jsonify({
+                'error': 'Agent initialization failed',
+                'message': 'Failed to initialize the JD Summarizer agent. Check the logs for details.'
+            }), 500
+        
+        # Analyze the job description
+        analysis_result = agent.analyze_job_description(job_description)
+        
+        # Check if there was an error
+        if 'error' in analysis_result:
+            logger.error(f"Error analyzing job description: {analysis_result.get('message', 'Unknown error')}")
+            return jsonify(analysis_result), 500
+        
+        return jsonify(analysis_result)
+    
+    except Exception as e:
+        logger.error(f"Error in analyze_job endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Analysis failed',
+            'message': f'Failed to analyze job description: {str(e)}'
+        }), 500
+
+@app.route('/api/insights', methods=['GET', 'POST'])
+def api_insights():
+    """API endpoint to generate insights for a candidate using the Insights Generator agent"""
+    if request.method == 'POST':
+        data = request.json
+        if not data or 'candidate_id' not in data:
+            return jsonify({'error': 'No candidate_id provided'}), 400
+        candidate_id = data['candidate_id']
+    else:  # GET method
+        candidate_id = request.args.get('candidate_id')
+        if not candidate_id:
+            return jsonify({'error': 'No candidate_id provided'}), 400
+        data = {} # Initialize empty data dictionary for GET requests
+    
+    # Import the insights generator agent
+    try:
+        from agents import get_insights_generator
+    except ImportError as e:
+        logger.error(f"Error importing agent: {str(e)}")
+        return jsonify({
+            'error': 'Agent module not available',
+            'message': 'Failed to import the agent module. Please check if the agents package is installed correctly.'
+        }), 500
+    
+    try:
+        # Get the candidate
+        candidate = Candidate.query.get(candidate_id)
+        
+        if not candidate:
+            return jsonify({'error': 'Candidate not found'}), 404
+        
+        # Get the insights generator agent with provider settings
+        # Get provider settings from request or default
+        provider = data.get('provider') or session.get('llm_provider', 'ollama')
+        model_name = data.get('model_name') or session.get('insights_generator_model_name')
+        
+        agent = get_insights_generator(model_name=model_name, provider=provider)
+        
+        if not agent:
+            logger.error("Failed to get Insights Generator agent")
+            return jsonify({'error': 'Failed to get Insights Generator agent'}), 500
+        
+        # Prepare candidate data for the agent
+        candidate_data = {
+            'name': candidate.name,
+            'email': candidate.email,
+            'phone': candidate.phone,
+            'education': candidate.education_list,
+            'experience': candidate.experience_list,
+            'skills': candidate.skills_dict,
+            'certifications': candidate.certifications_list,
+            'cv_text': candidate.cv_text
+        }
+        
+        # Generate insights using the agent
+        insights = agent.generate_insights(candidate_data)
+        
+        # Return the insights in the format expected by the front-end
+        # Store insights in session for future reference
+        session_key = f'insights_candidate_{candidate_id}'
+        session[session_key] = insights
+        
+        # Return the insights directly in the format expected by the front-end
+        return jsonify(insights)
+        
+    except Exception as e:
+        logger.error(f"Error in api_insights endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Insights generation failed',
+            'message': f'Failed to generate insights: {str(e)}'
+        }), 500
+
+@app.route('/api/schedule', methods=['POST'])
+def api_schedule_interview():
+    """API endpoint to generate an interview invitation email"""
+    data = request.json
+    
+    if not data or 'shortlist_id' not in data:
+        return jsonify({'error': 'No shortlist_id provided'}), 400
+    
+    shortlist_id = data['shortlist_id']
+    interview_format = data.get('format', 'video')
+    date_options = data.get('date_options', [])
+    duration = data.get('duration', '1 hour')
+    special_instructions = data.get('special_instructions', '')
+    
+    # Check if date options were provided
+    if not date_options or not isinstance(date_options, list) or len(date_options) == 0:
+        return jsonify({'error': 'No date options provided'}), 400
+    
+    # Import the scheduler agent
+    try:
+        from agents import get_scheduler
+    except ImportError as e:
+        logger.error(f"Error importing agent: {str(e)}")
+        return jsonify({
+            'error': 'Agent module not available',
+            'message': 'Failed to import the agent module. Please check if the agents package is installed correctly.'
+        }), 500
+    
+    try:
+        # Get the shortlist
+        shortlist = Shortlist.query.get(shortlist_id)
+        
+        if not shortlist:
+            return jsonify({'error': 'Shortlist not found'}), 404
+        
+        # Get the job and candidate
+        job = JobDescription.query.get(shortlist.jd_id)
+        candidate = Candidate.query.get(shortlist.candidate_id)
+        
+        if not job or not candidate:
+            return jsonify({'error': 'Job or candidate not found'}), 404
+        
+        # Check if an interview already exists
+        existing_interview = Interview.query.filter_by(shortlist_id=shortlist_id).first()
+        
+        if existing_interview:
+            # Return the existing interview
+            return jsonify({
+                'interview_id': existing_interview.interview_id,
+                'shortlist_id': existing_interview.shortlist_id,
+                'scheduled_date': existing_interview.scheduled_date.isoformat(),
+                'format': existing_interview.format,
+                'status': existing_interview.status,
+                'feedback': existing_interview.feedback,
+                'created_at': existing_interview.created_at.isoformat(),
+                'exists': True
+            })
+        
+        # Get the scheduler agent
+        from agents import get_scheduler
+        
+        # Get provider settings from request or default
+        provider = data.get('provider') or session.get('llm_provider', 'ollama')
+        model_name = data.get('model_name') or session.get('scheduler_model_name')
+        
+        scheduler = get_scheduler(model_name=model_name, provider=provider)
+        
+        if not scheduler:
+            logger.error("Failed to get Scheduler agent")
+            return jsonify({
+                'error': 'Agent initialization failed',
+                'message': 'Failed to initialize the Scheduler agent. Check the logs for details.'
+            }), 500
+        
+        # Generate interview invitation
+        invitation_result = scheduler.generate_interview_invitation(
+            job_title=job.job_title,
+            company_name="Company Name",  # This should be from settings in a real app
+            candidate_name=candidate.name,
+            interview_format=interview_format,
+            date_options=date_options,
+            duration=duration,
+            special_instructions=special_instructions
+        )
+        
+        # Check if there was an error
+        if 'error' in invitation_result:
+            logger.error(f"Error generating interview invitation: {invitation_result.get('message', 'Unknown error')}")
+            return jsonify(invitation_result), 500
+        
+        # Create a new interview record
+        # For simplicity, use the first date option as the scheduled date
+        scheduled_date = datetime.strptime(date_options[0], '%Y-%m-%d %H:%M')
+        
+        new_interview = Interview(
+            shortlist_id=shortlist_id,
+            scheduled_date=scheduled_date,
+            format=interview_format,
+            status='scheduled'
+        )
+        
+        db.session.add(new_interview)
+        
+        # Update the shortlist status
+        shortlist.status = 'interviewed'
+        
+        db.session.commit()
+        
+        # Return the interview details
+        return jsonify({
+            'interview_id': new_interview.interview_id,
+            'shortlist_id': new_interview.shortlist_id,
+            'scheduled_date': new_interview.scheduled_date.isoformat(),
+            'format': new_interview.format,
+            'status': new_interview.status,
+            'created_at': new_interview.created_at.isoformat(),
+            'exists': False,
+            'email_content': invitation_result.get('email_content', {})
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error in api_schedule_interview endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Interview scheduling failed',
+            'message': f'Failed to schedule interview: {str(e)}'
+        }), 500
+
+@app.route('/api/shortlist', methods=['POST'])
+def api_shortlist():
+    """API endpoint to determine if a candidate should be shortlisted for a job"""
+    data = request.json
+    
+    if not data or 'match_id' not in data:
+        return jsonify({'error': 'No match_id provided'}), 400
+    
+    match_id = data['match_id']
+    threshold = data.get('threshold', 70.0)  # Default threshold of 70%
+    
+    # Import the shortlister agent
+    try:
+        from agents import get_shortlister
+    except ImportError as e:
+        logger.error(f"Error importing agent: {str(e)}")
+        return jsonify({
+            'error': 'Agent module not available',
+            'message': 'Failed to import the agent module. Please check if the agents package is installed correctly.'
+        }), 500
+    
+    try:
+        # Get the match
+        match = MatchScore.query.get(match_id)
+        
+        if not match:
+            return jsonify({'error': 'Match not found'}), 404
+        
+        # Get the job and candidate
+        job = JobDescription.query.get(match.jd_id)
+        candidate = Candidate.query.get(match.candidate_id)
+        
+        if not job or not candidate:
+            return jsonify({'error': 'Job or candidate not found'}), 404
+        
+        # Check if a shortlist already exists
+        existing_shortlist = Shortlist.query.filter_by(jd_id=match.jd_id, candidate_id=match.candidate_id).first()
+        
+        if existing_shortlist:
+            # Return the existing shortlist
+            return jsonify({
+                'shortlist_id': existing_shortlist.shortlist_id,
+                'job_id': existing_shortlist.jd_id,
+                'candidate_id': existing_shortlist.candidate_id,
+                'status': existing_shortlist.status,
+                'notes': existing_shortlist.notes,
+                'created_at': existing_shortlist.created_at.isoformat(),
+                'exists': True
+            })
+        
+        # Get the shortlister agent with provider settings
+        from agents import get_shortlister
+        
+        # Get provider settings from request or default
+        provider = data.get('provider') or session.get('llm_provider', 'ollama')
+        model_name = data.get('model_name') or session.get('shortlister_model_name')
+        
+        shortlister = get_shortlister(model_name=model_name, provider=provider)
+        
+        if not shortlister:
+            logger.error("Failed to get Shortlister agent")
+            return jsonify({
+                'error': 'Agent initialization failed',
+                'message': 'Failed to initialize the Shortlister agent. Check the logs for details.'
+            }), 500
+        
+        # Prepare job description dict
+        job_description = {
+            'job_title': job.job_title,
+            'department': job.department,
+            'required_experience': job.required_experience,
+            'required_education': job.required_education,
+            'required_skills': job.skills_dict,
+            'job_responsibilities': job.responsibilities_list
+        }
+        
+        # Prepare match scores dict
+        match_scores = {
+            'overall_score': match.overall_score,
+            'skills_score': match.skills_score,
+            'experience_score': match.experience_score,
+            'education_score': match.education_score,
+            'certifications_score': match.certifications_score,
+            'candidate_name': candidate.name
+        }
+        
+        # Determine if the candidate should be shortlisted
+        shortlist_result = shortlister.shortlist_candidate(job_description, match_scores, threshold)
+        
+        # Check if there was an error
+        if 'error' in shortlist_result:
+            logger.error(f"Error shortlisting candidate: {shortlist_result.get('message', 'Unknown error')}")
+            return jsonify(shortlist_result), 500
+        
+        # Create a shortlist record if the decision is to shortlist
+        if shortlist_result['shortlist_decision']:
+            # Create a new shortlist record
+            notes = f"Confidence: {shortlist_result['confidence']}%. {shortlist_result['justification']}"
+            
+            new_shortlist = Shortlist(
+                jd_id=match.jd_id,
+                candidate_id=match.candidate_id,
+                status='pending',
+                notes=notes
+            )
+            
+            db.session.add(new_shortlist)
+            db.session.commit()
+            
+            # Return the shortlist details
+            return jsonify({
+                'shortlist_id': new_shortlist.shortlist_id,
+                'job_id': new_shortlist.jd_id,
+                'candidate_id': new_shortlist.candidate_id,
+                'status': new_shortlist.status,
+                'notes': new_shortlist.notes,
+                'created_at': new_shortlist.created_at.isoformat(),
+                'exists': False,
+                'details': shortlist_result,
+                'shortlisted': True
+            })
+        else:
+            # Return the shortlist decision without creating a record
+            return jsonify({
+                'job_id': match.jd_id,
+                'candidate_id': match.candidate_id,
+                'exists': False,
+                'details': shortlist_result,
+                'shortlisted': False
+            })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error in api_shortlist endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Shortlisting failed',
+            'message': f'Failed to determine if candidate should be shortlisted: {str(e)}'
+        }), 500
+
+# Error handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('errors/500.html'), 500
+
+# Initialize app
+logger.info("Application initialized")
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)

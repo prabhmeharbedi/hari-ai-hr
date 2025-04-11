@@ -1,0 +1,332 @@
+{% extends "layout.html" %}
+
+{% block title %}Candidate Match - AI Recruitment System{% endblock %}
+
+{% block page_title %}Candidate Match{% endblock %}
+{% block page_subtitle %}Detailed match analysis between job and candidate{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Match overview card -->
+    <div class="col-lg-12">
+        <div class="card fancy-border">
+            <div class="fancy-border-content">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px;">
+                                <i class="bi bi-person fs-3 text-light"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-1">{{ candidate.name }}</h3>
+                                <p class="mb-1 text-muted">{{ candidate.email }} | {{ candidate.phone }}</p>
+                                <div>
+                                    {% set skills = candidate.skills_dict() %}
+                                    {% for skill in skills|dictsort(by='value', reverse=True) %}
+                                    {% if loop.index <= 5 %}
+                                    <span class="badge bg-primary me-1 mb-1 hover-glow">{{ skill[0] }}</span>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end text-center">
+                        <div class="match-indicator mx-auto mx-lg-0 ms-lg-auto" data-score="{{ match.overall_score }}">
+                            {{ (match.overall_score * 100)|round|int }}%
+                        </div>
+                        <p class="mt-2 mb-0">
+                            {% if match.overall_score >= 0.75 %}
+                            <span class="text-success">Strong Match</span>
+                            {% elif match.overall_score >= 0.5 %}
+                            <span class="text-info">Good Match</span>
+                            {% elif match.overall_score >= 0.3 %}
+                            <span class="text-warning">Potential Match</span>
+                            {% else %}
+                            <span class="text-danger">Weak Match</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job details card -->
+    <div class="col-lg-4">
+        <div class="card card-3d-effect h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Job Details</h5>
+            </div>
+            <div class="card-body">
+                <h4 class="mb-2">{{ job.job_title }}</h4>
+                <p class="mb-3 text-muted">{{ job.department }}</p>
+                
+                <h6>Requirements</h6>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-briefcase me-2 text-primary"></i>
+                            <span>{{ job.required_experience }} years experience</span>
+                        </div>
+                    </li>
+                    <li class="mb-2">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-mortarboard me-2 text-primary"></i>
+                            <span>{{ job.required_education }}</span>
+                        </div>
+                    </li>
+                </ul>
+                
+                <h6>Key Skills Required</h6>
+                <div class="mb-3">
+                    {% set skills = job.skills_dict() %}
+                    {% for skill, level in skills.items() %}
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>{{ skill }}</span>
+                            <small class="text-muted">{{ level }}</small>
+                        </div>
+                        <div class="skill-level">
+                            <div class="level-fill {{ level|lower }}" data-level="{{ level|lower }}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <a href="{{ url_for('view_job', job_id=job.jd_id) }}" class="btn btn-sm btn-outline-primary btn-ripple">View Full Job Details</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Match compatibility card -->
+    <div class="col-lg-8">
+        <div class="card card-3d-effect">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Compatibility Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-lg-12 mb-4">
+                        <h6>Overall Match Compatibility</h6>
+                        <div class="compatibility-meter" data-score="{{ match.overall_score }}">
+                            <div class="compatibility-meter-fill"></div>
+                            <div class="compatibility-meter-marker"></div>
+                            <div class="compatibility-meter-label"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6 mb-3">
+                        <h6>Skills Match</h6>
+                        <div class="compatibility-meter" data-score="{{ match.skills_score }}">
+                            <div class="compatibility-meter-fill"></div>
+                            <div class="compatibility-meter-marker"></div>
+                            <div class="compatibility-meter-label"></div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <h6>Skills Comparison</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Skill</th>
+                                            <th>Required</th>
+                                            <th>Candidate</th>
+                                            <th>Match</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% set job_skills = job.skills_dict() %}
+                                        {% set candidate_skills = candidate.skills_dict() %}
+                                        {% for skill, level in job_skills.items() %}
+                                        <tr>
+                                            <td>{{ skill }}</td>
+                                            <td>{{ level }}</td>
+                                            <td>
+                                                {% if skill in candidate_skills %}
+                                                {{ candidate_skills[skill] }}
+                                                {% else %}
+                                                <span class="text-danger">Missing</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if skill in candidate_skills %}
+                                                {% set skill_match = namespace(score=0) %}
+                                                {% if candidate_skills[skill] == level %}
+                                                {% set skill_match.score = 1.0 %}
+                                                {% elif candidate_skills[skill] == 'expert' and level == 'advanced' %}
+                                                {% set skill_match.score = 1.0 %}
+                                                {% elif candidate_skills[skill] == 'advanced' and level == 'intermediate' %}
+                                                {% set skill_match.score = 1.0 %}
+                                                {% elif candidate_skills[skill] == 'intermediate' and level == 'beginner' %}
+                                                {% set skill_match.score = 1.0 %}
+                                                {% elif candidate_skills[skill] == 'advanced' and level == 'expert' %}
+                                                {% set skill_match.score = 0.75 %}
+                                                {% elif candidate_skills[skill] == 'intermediate' and level == 'advanced' %}
+                                                {% set skill_match.score = 0.75 %}
+                                                {% elif candidate_skills[skill] == 'beginner' and level == 'intermediate' %}
+                                                {% set skill_match.score = 0.75 %}
+                                                {% elif candidate_skills[skill] == 'intermediate' and level == 'expert' %}
+                                                {% set skill_match.score = 0.5 %}
+                                                {% elif candidate_skills[skill] == 'beginner' and level == 'advanced' %}
+                                                {% set skill_match.score = 0.5 %}
+                                                {% elif candidate_skills[skill] == 'beginner' and level == 'expert' %}
+                                                {% set skill_match.score = 0.25 %}
+                                                {% endif %}
+                                                
+                                                {% if skill_match.score >= 0.75 %}
+                                                <span class="badge bg-success">Strong</span>
+                                                {% elif skill_match.score >= 0.5 %}
+                                                <span class="badge bg-info">Good</span>
+                                                {% elif skill_match.score >= 0.25 %}
+                                                <span class="badge bg-warning">Fair</span>
+                                                {% else %}
+                                                <span class="badge bg-danger">Poor</span>
+                                                {% endif %}
+                                                {% else %}
+                                                <span class="badge bg-danger">Missing</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-6">
+                        <h6>Experience Match</h6>
+                        <div class="compatibility-meter" data-score="{{ match.experience_score }}">
+                            <div class="compatibility-meter-fill"></div>
+                            <div class="compatibility-meter-marker"></div>
+                            <div class="compatibility-meter-label"></div>
+                        </div>
+                        
+                        <h6 class="mt-3">Education Match</h6>
+                        <div class="compatibility-meter" data-score="{{ match.education_score }}">
+                            <div class="compatibility-meter-fill"></div>
+                            <div class="compatibility-meter-marker"></div>
+                            <div class="compatibility-meter-label"></div>
+                        </div>
+                        
+                        <h6 class="mt-3">Certifications Match</h6>
+                        <div class="compatibility-meter" data-score="{{ match.certifications_score }}">
+                            <div class="compatibility-meter-fill"></div>
+                            <div class="compatibility-meter-marker"></div>
+                            <div class="compatibility-meter-label"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action buttons -->
+    <div class="col-lg-12">
+        <div class="card card-3d-effect">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center">
+                    <div>
+                        <h5 class="mb-0">Actions</h5>
+                    </div>
+                    <div class="mt-3 mt-md-0">
+                        <a href="{{ url_for('view_candidate_insights', candidate_id=candidate.candidate_id) }}" class="btn btn-outline-info btn-ripple me-2">
+                            <i class="bi bi-lightbulb me-1"></i> AI Insights
+                        </a>
+                        
+                        <form method="POST" action="{{ url_for('api_shortlist') }}" class="d-inline">
+                            <input type="hidden" name="jd_id" value="{{ job.jd_id }}">
+                            <input type="hidden" name="candidate_id" value="{{ candidate.candidate_id }}">
+                            <button type="submit" class="btn btn-primary btn-ripple">
+                                <i class="bi bi-star me-1"></i> Shortlist Candidate
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize compatibility meters
+        const meters = document.querySelectorAll('.compatibility-meter');
+        
+        meters.forEach(meter => {
+            const score = parseFloat(meter.getAttribute('data-score'));
+            const fill = meter.querySelector('.compatibility-meter-fill');
+            const marker = meter.querySelector('.compatibility-meter-marker');
+            const label = meter.querySelector('.compatibility-meter-label');
+            
+            // Animate after a small delay
+            setTimeout(() => {
+                if (fill) fill.style.width = `${score * 100}%`;
+                if (marker) marker.style.left = `${score * 100}%`;
+                if (label) {
+                    label.style.left = `${score * 100}%`;
+                    label.textContent = `${Math.round(score * 100)}%`;
+                    
+                    // Add color classes based on score
+                    if (score >= 0.8) {
+                        label.classList.add('text-success');
+                    } else if (score >= 0.6) {
+                        label.classList.add('text-info');
+                    } else if (score >= 0.4) {
+                        label.classList.add('text-warning');
+                    } else {
+                        label.classList.add('text-danger');
+                    }
+                }
+            }, 300);
+        });
+        
+        // Initialize match indicator
+        const indicator = document.querySelector('.match-indicator');
+        if (indicator) {
+            const score = parseFloat(indicator.getAttribute('data-score'));
+            
+            // Set class based on score
+            if (score >= 0.75) {
+                indicator.classList.add('match-high');
+            } else if (score >= 0.5) {
+                indicator.classList.add('match-medium');
+            } else {
+                indicator.classList.add('match-low');
+            }
+            
+            // Add pulse animation on hover
+            indicator.addEventListener('mouseenter', () => {
+                indicator.classList.add('pulse');
+            });
+            
+            indicator.addEventListener('mouseleave', () => {
+                indicator.classList.remove('pulse');
+            });
+        }
+        
+        // Initialize skill levels
+        const skillLevels = document.querySelectorAll('.skill-level');
+        skillLevels.forEach(level => {
+            const fill = level.querySelector('.level-fill');
+            if (fill) {
+                const levelValue = fill.getAttribute('data-level');
+                let width = '25%';
+                
+                if (levelValue === 'intermediate') width = '50%';
+                if (levelValue === 'advanced') width = '75%';
+                if (levelValue === 'expert') width = '100%';
+                
+                // Animate after a small delay
+                setTimeout(() => {
+                    fill.style.width = width;
+                }, 300);
+            }
+        });
+    });
+</script>
+{% endblock %}

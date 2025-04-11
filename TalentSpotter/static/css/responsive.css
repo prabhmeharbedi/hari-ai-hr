@@ -1,0 +1,163 @@
+/* Responsive styles for the AI Recruitment System */
+
+/* Extra small devices (phones, 576px and down) */
+@media (max-width: 576px) {
+  .sidebar {
+    top: 0;
+    bottom: 0;
+    left: -100%;
+    width: 80%;
+    max-width: 300px;
+    padding-top: 56px; /* Height of mobile navbar */
+    transition: all 0.3s;
+    z-index: 1030;
+  }
+  
+  .sidebar.show {
+    left: 0;
+  }
+  
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1029;
+    display: none;
+  }
+  
+  .sidebar-backdrop.show {
+    display: block;
+  }
+  
+  /* Optimize form elements */
+  .form-group {
+    margin-bottom: 1rem;
+  }
+  
+  /* Optimize card layout */
+  .card-body {
+    padding: 1rem;
+  }
+  
+  /* Adjust table for small screens */
+  .table-responsive {
+    width: 100%;
+    margin-bottom: 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Make buttons full width on small screens */
+  .btn-responsive {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Stack cards vertically */
+  .card-deck .card {
+    margin-bottom: 15px;
+  }
+  
+  /* Adjust the stat cards */
+  .stat-card {
+    margin-bottom: 1rem;
+  }
+  
+  /* Adjust headings for smaller screens */
+  h1 {
+    font-size: 1.75rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+
+/* Small devices (tablets and large phones, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  .card-body {
+    padding: 1.25rem;
+  }
+  
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .sidebar {
+    width: 220px;
+  }
+  
+  main {
+    margin-left: 220px;
+  }
+  
+  /* Two columns for cards in tablet view */
+  .card-columns {
+    column-count: 2;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .sidebar {
+    width: 250px;
+  }
+  
+  main {
+    margin-left: 250px;
+  }
+  
+  /* Three columns for cards in desktop view */
+  .card-columns {
+    column-count: 3;
+  }
+  
+  /* Allow horizontal display of action buttons */
+  .btn-responsive {
+    width: auto;
+  }
+}
+
+/* Adjust dashboard cards to be same height in a row */
+.card-deck .card {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+}
+
+.card-deck .card .card-body {
+  flex: 1 0 auto;
+}
+
+/* Touch-friendly UI elements for mobile */
+@media (pointer: coarse) {
+  /* Larger touch targets */
+  .btn, .nav-link, .dropdown-item {
+    padding: 0.5rem 1rem;
+  }
+  
+  /* Increase spacing in forms */
+  .form-control {
+    height: calc(1.5em + 0.75rem + 6px);
+  }
+  
+  /* Larger checkboxes and radio buttons */
+  .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+  }
+}

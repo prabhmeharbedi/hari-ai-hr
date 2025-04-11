@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Job-Candidate Matches</h2>
+    <div class="mb-3">
+        <a href="{{ url_for('generate_matches') }}" class="btn btn-primary">Generate New Matches</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Candidate</th>
+                    <th>Overall Score</th>
+                    <th>Skills Score</th>
+                    <th>Experience Score</th>
+                    <th>Education Score</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for match in matches %}
+                <tr>
+                    <td>{{ match.job.job_title }}</td>
+                    <td>{{ match.candidate.name }}</td>
+                    <td>{{ "%.2f"|format(match.overall_score) }}%</td>
+                    <td>{{ "%.2f"|format(match.skills_score) }}%</td>
+                    <td>{{ "%.2f"|format(match.experience_score) }}%</td>
+                    <td>{{ "%.2f"|format(match.education_score) }}%</td>
+                    <td>
+                        <a href="{{ url_for('view_rankings', job_id=match.jd_id) }}" class="btn btn-sm btn-info">View Rankings</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

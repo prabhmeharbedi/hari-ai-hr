@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - AI Recruitment System{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Statistics Cards -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Jobs</h5>
+                    <h2 class="card-text">{{ stats.jobs }}</h2>
+                    <a href="{{ url_for('jobs.job_list') }}" class="btn btn-primary">View Jobs</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Candidates</h5>
+                    <h2 class="card-text">{{ stats.candidates }}</h2>
+                    <a href="{{ url_for('candidates.candidate_list') }}" class="btn btn-primary">View Candidates</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Matches</h5>
+                    <h2 class="card-text">{{ stats.matches }}</h2>
+                    <p class="card-text">Avg Score: {{ "%.1f"|format(stats.avg_match_score) }}%</p>
+                    <a href="{{ url_for('matches.match_dashboard') }}" class="btn btn-primary">View Matches</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Interviews</h5>
+                    <h2 class="card-text">{{ stats.interviews }}</h2>
+                    <a href="{{ url_for('interviews.interview_list') }}" class="btn btn-primary">View Interviews</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="btn-group" role="group">
+                        <a href="{{ url_for('jobs.add_job') }}" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Add New Job
+                        </a>
+                        <a href="{{ url_for('candidates.add_candidate') }}" class="btn btn-success">
+                            <i class="bi bi-person-plus"></i> Add New Candidate
+                        </a>
+                        <a href="{{ url_for('matches.generate_matches', job_id=0) }}" class="btn btn-info">
+                            <i class="bi bi-shuffle"></i> Generate Matches
+                        </a>
+                        <a href="{{ url_for('interviews.upcoming_interviews') }}" class="btn btn-warning">
+                            <i class="bi bi-calendar-check"></i> View Upcoming Interviews
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

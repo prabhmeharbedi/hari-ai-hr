@@ -1,0 +1,455 @@
+{% extends 'layout.html' %}
+
+{% block title %}Match Details - AI Recruiter{% endblock %}
+{% block header_title %}Match Analysis{% endblock %}
+
+{% block content %}
+<div class="dashboard-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="m-0">Match Analysis</h4>
+            <p class="text-secondary mb-0">{{ candidate.name }} × {{ job.title }}</p>
+        </div>
+        <div>
+            {% if is_shortlisted %}
+                <span class="badge bg-success me-2 py-2 px-3">
+                    <i class="fas fa-check-circle me-1"></i> Shortlisted
+                </span>
+                <a href="{{ url_for('interviews.schedule_interview', shortlist_id=shortlist.id) }}" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar me-1"></i> Schedule Interview
+                </a>
+            {% else %}
+                <a href="{{ url_for('matches.shortlist_candidate', job_id=job.id, candidate_id=candidate.id) }}" class="btn btn-success">
+                    <i class="fas fa-user-check me-1"></i> Shortlist Candidate
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Overall Score -->
+        <div class="col-md-4 mb-4">
+            <div class="card bg-dark h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-4">Overall Match Score</h5>
+                    <div class="position-relative mx-auto" style="width: 150px; height: 150px;">
+                        <canvas class="match-score-chart" data-score="{{ match.overall_score|round }}"></canvas>
+                        <div class="position-absolute top-50 start-50 translate-middle fw-bold" style="font-size: 2rem;">
+                            {{ match.overall_score|round }}%
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        {% if match.overall_score >= 80 %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Excellent match!</strong> This candidate is highly suitable for the position.
+                            </div>
+                        {% elif match.overall_score >= 60 %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Good match.</strong> This candidate meets most of the job requirements.
+                            </div>
+                        {% elif match.overall_score >= 40 %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Fair match.</strong> This candidate meets some of the job requirements.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle me-2"></i>
+                                <strong>Poor match.</strong> This candidate does not meet many of the job requirements.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Scores -->
+        <div class="col-md-8 mb-4">
+            <div class="card bg-dark h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Category Scores</h5>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <i class="fas fa-tools me-2"></i>
+                                <strong>Skills Match</strong>
+                            </div>
+                            <span class="fw-bold {% if match.skills_score >= 75 %}text-success{% elif match.skills_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ match.skills_score|round }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar {% if match.skills_score >= 75 %}bg-success{% elif match.skills_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ match.skills_score }}%" 
+                                aria-valuenow="{{ match.skills_score|round }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <i class="fas fa-briefcase me-2"></i>
+                                <strong>Experience Match</strong>
+                            </div>
+                            <span class="fw-bold {% if match.experience_score >= 75 %}text-success{% elif match.experience_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ match.experience_score|round }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar {% if match.experience_score >= 75 %}bg-success{% elif match.experience_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ match.experience_score }}%" 
+                                aria-valuenow="{{ match.experience_score|round }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <i class="fas fa-graduation-cap me-2"></i>
+                                <strong>Education Match</strong>
+                            </div>
+                            <span class="fw-bold {% if match.education_score >= 75 %}text-success{% elif match.education_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ match.education_score|round }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar {% if match.education_score >= 75 %}bg-success{% elif match.education_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ match.education_score }}%" 
+                                aria-valuenow="{{ match.education_score|round }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <i class="fas fa-certificate me-2"></i>
+                                <strong>Certifications Match</strong>
+                            </div>
+                            <span class="fw-bold {% if match.certifications_score >= 75 %}text-success{% elif match.certifications_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                                {{ match.certifications_score|round }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar {% if match.certifications_score >= 75 %}bg-success{% elif match.certifications_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ match.certifications_score }}%" 
+                                aria-valuenow="{{ match.certifications_score|round }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Skills Analysis -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="fas fa-tools me-2"></i>
+                        Skills Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-secondary mb-2">Required Skills</h6>
+                            {% if job.required_skills %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for skill in job.required_skills.split(',') %}
+                                        <span class="badge bg-secondary">{{ skill.strip() }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No skills specified</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-secondary mb-2">Candidate Skills</h6>
+                            {% if candidate.skills %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for skill in candidate.skills.split(',') %}
+                                        {% set skill_name = skill.strip() %}
+                                        {% set is_matched = false %}
+                                        {% if job.required_skills %}
+                                            {% for req_skill in job.required_skills.split(',') %}
+                                                {% if skill_name.lower() == req_skill.strip().lower() %}
+                                                    {% set is_matched = true %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endif %}
+                                        <span class="badge {% if is_matched %}bg-success{% else %}bg-primary{% endif %}">
+                                            {{ skill_name }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No skills specified</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-secondary mb-2">Skills Match Analysis</h6>
+                    <p class="mb-0">
+                        The candidate possesses 
+                        <strong class="{% if match.skills_score >= 75 %}text-success{% elif match.skills_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ match.skills_score|round }}%
+                        </strong> 
+                        of the required skills for this position.
+                        {% if match.skills_score >= 75 %}
+                            This is an excellent skills match.
+                        {% elif match.skills_score >= 50 %}
+                            This is a good skills match, but there are some skill gaps.
+                        {% else %}
+                            There are significant skill gaps that may require training.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Experience Analysis -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="fas fa-briefcase me-2"></i>
+                        Experience Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-secondary mb-2">Required Experience</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="display-5 me-2">{{ job.required_experience }}</div>
+                                <div class="text-secondary">years</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-secondary mb-2">Candidate Experience</h6>
+                            <div class="d-flex align-items-center">
+                                <div class="display-5 me-2">
+                                    {% if candidate.experience %}
+                                        5
+                                    {% else %}
+                                        ?
+                                    {% endif %}
+                                </div>
+                                <div class="text-secondary">years (est.)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-secondary mb-2">Experience Match Analysis</h6>
+                    <p class="mb-0">
+                        The candidate's experience level is 
+                        <strong class="{% if match.experience_score >= 75 %}text-success{% elif match.experience_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ match.experience_score|round }}%
+                        </strong> 
+                        aligned with the job requirements.
+                        {% if match.experience_score >= 75 %}
+                            The candidate has sufficient experience for this role.
+                        {% elif match.experience_score >= 50 %}
+                            The candidate has moderate experience for this role.
+                        {% else %}
+                            The candidate's experience may be insufficient for this role.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Education Analysis -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Education Analysis
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-secondary mb-2">Required Education</h6>
+                            <p>{{ job.required_education or 'Not specified' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h6 class="text-secondary mb-2">Candidate Education</h6>
+                            <p>{{ candidate.education or 'Not specified' }}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-secondary mb-2">Education Match Analysis</h6>
+                    <p class="mb-0">
+                        The candidate's educational background is 
+                        <strong class="{% if match.education_score >= 75 %}text-success{% elif match.education_score >= 50 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ match.education_score|round }}%
+                        </strong> 
+                        aligned with the job requirements.
+                        {% if match.education_score >= 75 %}
+                            The candidate's education is well-suited for this role.
+                        {% elif match.education_score >= 50 %}
+                            The candidate's education is moderately aligned with this role.
+                        {% else %}
+                            The candidate's education may not fully meet the requirements for this role.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recommendations -->
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h5 class="m-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        AI Recommendations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert 
+                        {% if match.overall_score >= 75 %}alert-success
+                        {% elif match.overall_score >= 50 %}alert-info
+                        {% else %}alert-warning{% endif %} mb-4">
+                        <div class="d-flex">
+                            <div class="me-3">
+                                <i class="fas 
+                                {% if match.overall_score >= 75 %}fa-thumbs-up
+                                {% elif match.overall_score >= 50 %}fa-info-circle
+                                {% else %}fa-exclamation-triangle{% endif %} fa-2x"></i>
+                            </div>
+                            <div>
+                                <h5 class="alert-heading">
+                                    {% if match.overall_score >= 75 %}
+                                        Recommended for Shortlisting
+                                    {% elif match.overall_score >= 50 %}
+                                        Consider for Shortlisting
+                                    {% else %}
+                                        Not Recommended for Shortlisting
+                                    {% endif %}
+                                </h5>
+                                <p class="mb-0">
+                                    {% if match.overall_score >= 75 %}
+                                        This candidate is a strong match for the position. Consider proceeding with the interview process.
+                                    {% elif match.overall_score >= 50 %}
+                                        This candidate meets some key requirements but has gaps in certain areas. Consider interviewing if there are no stronger candidates.
+                                    {% else %}
+                                        This candidate does not strongly align with the position requirements. It may be best to consider other candidates.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if match.overall_score >= 50 %}
+                        <h6 class="mb-3">Suggested Interview Topics</h6>
+                        <ul class="list-group mb-3">
+                            {% if match.skills_score < 75 %}
+                                <li class="list-group-item bg-transparent border-secondary">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    Technical skills assessment in areas of gap
+                                </li>
+                            {% endif %}
+                            {% if match.experience_score < 75 %}
+                                <li class="list-group-item bg-transparent border-secondary">
+                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                    Detailed discussion of past projects and responsibilities
+                                </li>
+                            {% endif %}
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <i class="fas fa-check-circle text-primary me-2"></i>
+                                Problem-solving scenarios related to job responsibilities
+                            </li>
+                            <li class="list-group-item bg-transparent border-secondary">
+                                <i class="fas fa-check-circle text-primary me-2"></i>
+                                Cultural fit and team collaboration assessment
+                            </li>
+                        </ul>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2">
+                        {% if is_shortlisted %}
+                            <a href="{{ url_for('interviews.schedule_interview', shortlist_id=shortlist.id) }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>Schedule Interview
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('matches.shortlist_candidate', job_id=job.id, candidate_id=candidate.id) }}" class="btn btn-success">
+                                <i class="fas fa-user-check me-2"></i>Shortlist Candidate
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Match score chart
+    const scoreElements = document.querySelectorAll('.match-score-chart');
+    scoreElements.forEach(element => {
+        const score = parseFloat(element.getAttribute('data-score'));
+        const ctx = element.getContext('2d');
+        
+        let color;
+        if (score >= 75) {
+            color = '#10b981'; // Success
+        } else if (score >= 50) {
+            color = '#f59e0b'; // Warning
+        } else {
+            color = '#ef4444'; // Danger
+        }
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [score, 100 - score],
+                    backgroundColor: [
+                        color,
+                        'rgba(38, 41, 43, 0.6)'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        enabled: false
+                    }
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

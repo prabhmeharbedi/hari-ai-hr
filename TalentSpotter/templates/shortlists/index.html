@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Shortlisted Candidates</h2>
+    <div class="mb-3">
+        <a href="{{ url_for('shortlists.create') }}" class="btn btn-primary">Create New Shortlist</a>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Shortlist Name</th>
+                    <th>Job Title</th>
+                    <th>Number of Candidates</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for shortlist in shortlists %}
+                <tr>
+                    <td>{{ shortlist.name }}</td>
+                    <td>{{ shortlist.job.title }}</td>
+                    <td>{{ shortlist.candidates|length }}</td>
+                    <td>{{ shortlist.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        <a href="{{ url_for('shortlists.view', shortlist_id=shortlist.id) }}" class="btn btn-sm btn-info">View</a>
+                        <a href="{{ url_for('shortlists.edit', shortlist_id=shortlist.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{{ url_for('shortlists.delete', shortlist_id=shortlist.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this shortlist?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

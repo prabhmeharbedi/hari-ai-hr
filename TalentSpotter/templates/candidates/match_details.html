@@ -1,0 +1,182 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Candidate Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Candidate Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Name:</strong> {{ candidate.name }}</p>
+                            <p><strong>Email:</strong> {{ candidate.email }}</p>
+                            <p><strong>Phone:</strong> {{ candidate.phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Current Company:</strong> {{ candidate.current_company }}</p>
+                            <p><strong>Current Position:</strong> {{ candidate.current_position }}</p>
+                            <p><strong>Experience:</strong> {{ candidate.experience }} years</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Match Score -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Match Score</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="match-score-circle mx-auto" style="width: 150px; height: 150px;">
+                            <div class="progress-circle progress-{{ match_score_color }}" data-progress="{{ match_score * 100 }}">
+                                <span class="progress-circle-value">{{ (match_score * 100)|round(1) }}%</span>
+                            </div>
+                        </div>
+                        <p class="mt-3">
+                            {% if match_score >= 0.8 %}
+                                <span class="badge bg-success">Excellent Match</span>
+                            {% elif match_score >= 0.6 %}
+                                <span class="badge bg-primary">Good Match</span>
+                            {% elif match_score >= 0.4 %}
+                                <span class="badge bg-warning">Average Match</span>
+                            {% else %}
+                                <span class="badge bg-danger">Poor Match</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <!-- Match Breakdown -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Skills Match</h6>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-{{ skills_match_color }}" role="progressbar" 
+                                     style="width: {{ skills_match_percentage * 100 }}%"
+                                     aria-valuenow="{{ skills_match_percentage * 100 }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ (skills_match_percentage * 100)|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Experience Match</h6>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-{{ experience_match_color }}" role="progressbar" 
+                                     style="width: {{ experience_match_percentage * 100 }}%"
+                                     aria-valuenow="{{ experience_match_percentage * 100 }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ (experience_match_percentage * 100)|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Key Skills Analysis -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Key Skills Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Matched Skills -->
+                    <div class="mb-3">
+                        <h6>Matched Skills</h6>
+                        <div class="skill-tags">
+                            {% for skill in matched_skills %}
+                            <span class="badge bg-success">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Missing Skills -->
+                    <div class="mb-3">
+                        <h6>Missing Skills</h6>
+                        <div class="skill-tags">
+                            {% for skill in missing_skills %}
+                            <span class="badge bg-danger">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Additional Skills -->
+                    <div class="mb-3">
+                        <h6>Additional Skills</h6>
+                        <div class="skill-tags">
+                            {% for skill in additional_skills %}
+                            <span class="badge bg-info">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Recommendations -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">AI Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        {% for recommendation in ai_recommendations %}
+                        <li class="list-group-item">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            {{ recommendation }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.progress-circle {
+    position: relative;
+    display: inline-block;
+    margin: 1rem;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #ebebeb;
+}
+
+.progress-circle:after {
+    content: '';
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+
+.progress-circle-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tags .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+}
+</style>
+{% endblock %} 

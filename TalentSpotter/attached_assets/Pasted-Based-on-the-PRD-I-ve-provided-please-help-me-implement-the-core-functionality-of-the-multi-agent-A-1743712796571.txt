@@ -1,0 +1,57 @@
+Based on the PRD I've provided, please help me implement the core functionality of the multi-agent AI recruitment system. I've already created the UI using Shadcn components. Now I need the backend implementation that will power the intelligent recruitment workflow.
+What I Need
+
+Ollama Agent Implementation:
+
+Create Python code for implementing all four agents (JD Summarizer, Recruiting Agent, Shortlisting Agent, and Interview Scheduler)
+Include prompt templates for each agent that will produce structured, reliable outputs
+Show how to instantiate these agents using Ollama's Python API
+
+
+Database Implementation:
+
+Provide the complete SQLite schema with all necessary tables
+Include Python code for database initialization
+Implement CRUD operations for all main entities
+
+
+Integration Code:
+
+Create API endpoints that bridge between the frontend and backend
+Show how the multi-agent system connects to these endpoints
+Include request/response handling logic
+
+
+Core AI Functionality:
+
+Implement the match scoring algorithm with separate scores for skills, experience, education, and certifications
+Create the JD parsing functionality to extract structured information from job descriptions
+Develop CV parsing capabilities to extract candidate details
+
+
+Complete System Architecture:
+
+Show how all components interact in a complete architecture diagram
+Include message flow between agents
+Document the sequence of operations for key workflows
+
+
+
+Technical Requirements
+
+Use Python 3.8+ for all backend code
+Follow RESTful API design principles
+Include error handling and validation
+Ensure proper security practices
+Focus on modularity for easy maintenance
+Include detailed comments for complex functionality
+
+Supporting Materials
+Please provide:
+
+A requirements.txt file for necessary dependencies
+A quick start guide for running the system
+Suggestions for testing and evaluation
+Recommendations for model selection based on the Ollama models mentioned in the PRD
+
+I've already implemented the frontend UI, so focus on making the backend intelligent and reliable. The goal is to have a working system that can analyze job descriptions, match candidates effectively, and automate the shortlisting process.

@@ -1,0 +1,99 @@
+{% extends "layout.html" %}
+
+{% block title %}Notification Settings | AI Recruiter{% endblock %}
+
+{% block header_title %}Notification Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="d-flex justify-content-between mb-4 align-items-center">
+                    <div class="card-title mb-0">Email Notification Settings</div>
+                    <a href="{{ url_for('settings.settings_dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Settings
+                    </a>
+                </div>
+                
+                <form method="post" action="{{ url_for('settings.notification_settings') }}">
+                    <div class="row g-4">
+                        <!-- Email Settings -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-envelope text-primary me-2"></i>
+                                        Email Configuration
+                                    </h5>
+                                    
+                                    <div class="mb-3 form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications" {% if config.notifications.email_notifications %}checked{% endif %}>
+                                        <label class="form-check-label" for="email_notifications">Enable Email Notifications</label>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="admin_email" class="form-label">Administrator Email</label>
+                                        <input type="email" class="form-control" id="admin_email" name="admin_email" value="{{ config.notifications.admin_email }}">
+                                        <div class="form-text">Email address to receive system notifications.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Notification Types -->
+                        <div class="col-md-6">
+                            <div class="card bg-dark-card border-light">
+                                <div class="card-body">
+                                    <h5 class="mb-3">
+                                        <i class="fas fa-bell text-warning me-2"></i>
+                                        Notification Types
+                                    </h5>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="notify_on_new_candidate" name="notify_on_new_candidate" {% if config.notifications.notify_on_new_candidate %}checked{% endif %}>
+                                            <label class="form-check-label" for="notify_on_new_candidate">New Candidate Alerts</label>
+                                        </div>
+                                        <div class="form-text">Receive notifications when new candidates are added.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="notify_on_shortlist" name="notify_on_shortlist" {% if config.notifications.notify_on_shortlist %}checked{% endif %}>
+                                            <label class="form-check-label" for="notify_on_shortlist">Shortlist Alerts</label>
+                                        </div>
+                                        <div class="form-text">Receive notifications when candidates are shortlisted.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="notify_on_interview" name="notify_on_interview" {% if config.notifications.notify_on_interview %}checked{% endif %}>
+                                            <label class="form-check-label" for="notify_on_interview">Interview Alerts</label>
+                                        </div>
+                                        <div class="form-text">Receive notifications for scheduled interviews.</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="daily_summary" name="daily_summary" {% if config.notifications.daily_summary %}checked{% endif %}>
+                                            <label class="form-check-label" for="daily_summary">Daily Summary</label>
+                                        </div>
+                                        <div class="form-text">Receive a daily summary of recruitment activities.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save Notification Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

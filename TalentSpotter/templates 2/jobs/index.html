@@ -1,0 +1,135 @@
+{% extends "layout.html" %}
+
+{% block title %}Jobs - AI Recruitment System{% endblock %}
+
+{% block page_title %}Job Descriptions{% endblock %}
+
+{% block page_actions %}
+    <div class="btn-group" role="group">
+        <a href="{{ url_for('add_job') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Job
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">All Job Descriptions</h5>
+        </div>
+        <div class="card-body">
+            {% if jobs %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Department</th>
+                                <th>Experience</th>
+                                <th>Skills</th>
+                                <th>Created</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                                <tr>
+                                    <td>{{ job.jd_id }}</td>
+                                    <td>{{ job.job_title }}</td>
+                                    <td>{{ job.department }}</td>
+                                    <td>{{ job.required_experience }} years</td>
+                                    <td>
+                                        {% if job.skills_dict %}
+                                            {% for skill, importance in job.skills_dict.items() %}
+                                                {% if loop.index <= 3 %}
+                                                    <span class="badge text-bg-secondary">{{ skill }}</span>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if job.skills_dict|length > 3 %}
+                                                <span class="badge text-bg-secondary">+{{ job.skills_dict|length - 3 }} more</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">No skills listed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ job.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge {% if job.status == 'active' %}text-bg-success{% else %}text-bg-secondary{% endif %}">
+                                            {{ job.status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('view_job', job_id=job.jd_id) }}" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_job', job_id=job.jd_id) }}" class="btn btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteJobModal" data-job-id="{{ job.jd_id }}" data-job-title="{{ job.job_title }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No job descriptions found. Get started by adding your first job.
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('add_job') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add a Job
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteJobModal" tabindex="-1" aria-labelledby="deleteJobModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteJobModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the job <strong id="jobTitleToDelete"></strong>?</p>
+                    <p class="text-danger">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteJobForm" method="post" action="">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set up delete job modal
+    const deleteJobModal = document.getElementById('deleteJobModal');
+    if (deleteJobModal) {
+        deleteJobModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const jobId = button.getAttribute('data-job-id');
+            const jobTitle = button.getAttribute('data-job-title');
+            
+            const jobTitleElement = document.getElementById('jobTitleToDelete');
+            const deleteForm = document.getElementById('deleteJobForm');
+            
+            jobTitleElement.textContent = jobTitle;
+            deleteForm.action = "{{ url_for('delete_job', job_id=0) }}".replace('0', jobId);
+        });
+    }
+</script>
+{% endblock %}

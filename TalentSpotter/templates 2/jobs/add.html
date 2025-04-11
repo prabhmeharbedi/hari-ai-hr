@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Job - AI Recruitment System{% endblock %}
+
+{% block page_title %}Add New Job{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Add New Job Description</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('add_job') }}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="job_title" class="form-label">Job Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="job_title" name="job_title" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" class="form-control" id="department" name="department">
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="required_experience" class="form-label">Required Experience (years) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="required_experience" name="required_experience" min="0" max="20" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="draft">Draft</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="required_education" class="form-label">Required Education</label>
+                    <textarea class="form-control" id="required_education" name="required_education" rows="2"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="job_responsibilities" class="form-label">Job Responsibilities <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="job_responsibilities" name="job_responsibilities" rows="5" required></textarea>
+                    <div class="form-text">
+                        Enter each responsibility on a new line. These will be processed by the JD Summarizer agent.
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Required Skills <span class="text-danger">*</span></label>
+                    <div id="skills-container">
+                        <div class="input-group mb-2">
+                            <input type="text" class="form-control skill-name" name="skill_names[]" placeholder="Skill name" required>
+                            <select class="form-select skill-level" name="skill_levels[]" style="max-width: 150px;">
+                                <option value="essential">Essential</option>
+                                <option value="important">Important</option>
+                                <option value="nice_to_have">Nice to have</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-danger remove-skill" disabled>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-skill" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-plus-circle"></i> Add Another Skill
+                    </button>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('jobs') }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Save Job
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add skill field
+    document.getElementById('add-skill').addEventListener('click', function() {
+        const container = document.getElementById('skills-container');
+        const newSkill = document.createElement('div');
+        newSkill.className = 'input-group mb-2';
+        newSkill.innerHTML = `
+            <input type="text" class="form-control skill-name" name="skill_names[]" placeholder="Skill name" required>
+            <select class="form-select skill-level" name="skill_levels[]" style="max-width: 150px;">
+                <option value="essential">Essential</option>
+                <option value="important">Important</option>
+                <option value="nice_to_have">Nice to have</option>
+            </select>
+            <button type="button" class="btn btn-outline-danger remove-skill">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+        container.appendChild(newSkill);
+        
+        // Enable all remove buttons when we have more than 1 skill
+        if (container.children.length > 1) {
+            const removeButtons = document.querySelectorAll('.remove-skill');
+            removeButtons.forEach(button => {
+                button.disabled = false;
+            });
+        }
+    });
+    
+    // Remove skill field
+    document.getElementById('skills-container').addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-skill') || e.target.parentElement.classList.contains('remove-skill')) {
+            const button = e.target.classList.contains('remove-skill') ? e.target : e.target.parentElement;
+            const inputGroup = button.parentElement;
+            
+            // Only remove if we have more than 1 skill field
+            const container = document.getElementById('skills-container');
+            if (container.children.length > 1) {
+                inputGroup.remove();
+                
+                // If we now have exactly 1 skill, disable the remove button
+                if (container.children.length === 1) {
+                    const removeButton = document.querySelector('.remove-skill');
+                    removeButton.disabled = true;
+                }
+            }
+        }
+    });
+    
+    // Add initial skill field on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('add-skill').click();
+    });
+</script>
+{% endblock %}

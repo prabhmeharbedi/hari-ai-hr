@@ -1,0 +1,113 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Matches Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Matches</h5>
+                    <h2 class="card-text">{{ match_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Jobs</h5>
+                    <h2 class="card-text">{{ job_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Candidates</h5>
+                    <h2 class="card-text">{{ candidate_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Average Match Score</h5>
+                    <h2 class="card-text">{{ avg_score }}%</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Matches -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Matches</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Job Title</th>
+                                    <th>Candidate</th>
+                                    <th>Match Score</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for match in recent_matches %}
+                                <tr>
+                                    <td>{{ match.job_title }}</td>
+                                    <td>{{ match.candidate_name }}</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" style="width: {{ match.score }}%" 
+                                                 aria-valuenow="{{ match.score }}" aria-valuemin="0" aria-valuemax="100">
+                                                {{ match.score }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ match.date }}</td>
+                                    <td>
+                                        <a href="{{ url_for('matches.get_match_details', match_id=match.match_id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            Details
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jobs with Most Matches -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Jobs with Most Matches</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for job in jobs_with_matches %}
+                        <a href="{{ url_for('matches.job_matches', job_id=job.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ job.title }}</h6>
+                                <span class="badge bg-primary rounded-pill">{{ job.match_count }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,206 @@
+"""
+Candidate Shortlisting Agent
+
+This module contains the implementation of the Shortlister agent,
+which determines whether a candidate should be shortlisted for 
+an interview based on their match score and other factors.
+"""
+
+import logging
+from typing import Dict, Any, List, Optional
+from .base_agent import BaseAgent
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+class ShortlisterAgent(BaseAgent):
+    """Agent for determining which candidates to shortlist for interviews."""
+    
+    def __init__(self, model_name: str = "phi-2", provider: str = "ollama"):
+        """
+        Initialize the Shortlister agent.
+        
+        Args:
+            model_name: Name of the model to use
+            provider: Provider of the LLM ('ollama' or 'openai')
+        """
+        super().__init__(model_name=model_name, provider=provider)
+    
+    def shortlist_candidate(self, job_description: Dict[str, Any], match_scores: Dict[str, Any], threshold: float = 70.0) -> Dict[str, Any]:
+        """
+        Determine if a candidate should be shortlisted based on their job description and match scores.
+        
+        Args:
+            job_description: Dictionary containing the job requirements
+            match_scores: Dictionary containing match scores and candidate information
+            threshold: Minimum overall score for automatic shortlisting
+            
+        Returns:
+            Dictionary containing shortlisting decision and rationale
+        """
+        # Check if the models are available
+        if not self._check_models():
+            return {"error": True, "message": "LLM models not available"}
+        
+        try:
+            # Create a system prompt for the shortlisting decision
+            system_prompt = """
+            You are an expert recruitment shortlister. Your task is to determine whether 
+            a candidate should be shortlisted for an interview based on their match score 
+            and other relevant factors.
+            
+            Make a yes/no decision, but also provide a confidence level (0-100) and 
+            a detailed rationale for your decision.
+            
+            Format your response as a JSON object with the following structure:
+            {
+                "shortlist": boolean,
+                "confidence": number (0-100),
+                "rationale": "string",
+                "key_strengths": ["strength1", "strength2", ...],
+                "key_concerns": ["concern1", "concern2", ...],
+                "interview_focus_areas": ["area1", "area2", ...]
+            }
+            
+            Be objective and thorough in your evaluation. Consider all aspects of the 
+            candidate's profile and how they match the job requirements.
+            """
+            
+            # Create a user prompt with the job description and match scores
+            user_prompt = f"""
+            Please determine if the candidate should be shortlisted for an interview 
+            based on the following information:
+            
+            Job Description:
+            {job_description}
+            
+            Match Scores:
+            {match_scores}
+            
+            The automatic shortlisting threshold is {threshold}% overall match.
+            Consider both the quantitative scores and the job requirements in your decision.
+            """
+            
+            # Get the JSON response
+            result = self.get_json_response(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                temperature=0.3  # Slightly higher temperature to allow for more nuanced decision
+            )
+            
+            # Check for errors in JSON parsing
+            if "error" in result:
+                logger.error(f"Error making shortlisting decision: {result.get('message', 'Unknown error')}")
+                return result
+            
+            # Validate the output to ensure it has the expected structure
+            required_fields = ["shortlist", "confidence", "rationale"]
+            for field in required_fields:
+                if field not in result:
+                    logger.warning(f"Incomplete shortlisting result - missing {field}")
+                    return {
+                        "error": True,
+                        "message": f"Failed to make shortlisting decision (missing {field})",
+                        "partial_result": result
+                    }
+            
+            # Format the result to match the expected structure in main.py
+            formatted_result = {
+                "shortlist_decision": result.get("shortlist", False),
+                "confidence": result.get("confidence", 0),
+                "justification": result.get("rationale", "No rationale provided"),
+                "key_strengths": result.get("key_strengths", []),
+                "key_concerns": result.get("key_concerns", []),
+                "interview_focus_areas": result.get("interview_focus_areas", [])
+            }
+            
+            # Return the shortlisting decision
+            return formatted_result
+            
+        except Exception as e:
+            logger.error(f"Error in shortlist_candidate: {str(e)}")
+            return {
+                "error": True,
+                "message": f"Failed to make shortlisting decision: {str(e)}"
+            }
+    
+    def prioritize_candidates(self, shortlisted_candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Prioritize a list of shortlisted candidates based on their match scores and profiles.
+        
+        Args:
+            shortlisted_candidates: List of shortlisted candidates with their match results
+            
+        Returns:
+            Dictionary containing prioritized candidates and rationale
+        """
+        # Check if the models are available
+        if not self._check_models():
+            return {"error": True, "message": "LLM models not available"}
+        
+        try:
+            # Create a system prompt for the prioritization
+            system_prompt = """
+            You are an expert recruitment prioritizer. Your task is to sort and rank 
+            a list of shortlisted candidates based on their match scores, profiles, 
+            and other relevant factors.
+            
+            Provide a ranked list of candidates with detailed explanations for the ranking.
+            
+            Format your response as a JSON object with the following structure:
+            {
+                "ranked_candidates": [
+                    {
+                        "candidate_id": number,
+                        "rank": number,
+                        "rationale": "string"
+                    }
+                ],
+                "ranking_criteria": ["criterion1", "criterion2", ...],
+                "overall_assessment": "string"
+            }
+            
+            Be objective and thorough in your evaluation. Consider all aspects of the 
+            candidates' profiles and how they match the job requirements.
+            """
+            
+            # Create a user prompt with the shortlisted candidates
+            user_prompt = f"""
+            Please prioritize the following shortlisted candidates:
+            
+            {shortlisted_candidates}
+            
+            Rank them based on their match scores, profiles, and other relevant factors.
+            Provide a detailed explanation for your ranking.
+            """
+            
+            # Get the JSON response
+            result = self.get_json_response(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                temperature=0.3  # Slightly higher temperature for more nuanced ranking
+            )
+            
+            # Check for errors in JSON parsing
+            if "error" in result:
+                logger.error(f"Error prioritizing candidates: {result.get('message', 'Unknown error')}")
+                return result
+            
+            # Validate the output to ensure it has the expected structure
+            if "ranked_candidates" not in result:
+                logger.warning("Incomplete prioritization result - missing ranked_candidates")
+                return {
+                    "error": True,
+                    "message": "Failed to prioritize candidates (missing ranked_candidates)",
+                    "partial_result": result
+                }
+            
+            # Return the prioritization result
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in prioritize_candidates: {str(e)}")
+            return {
+                "error": True,
+                "message": f"Failed to prioritize candidates: {str(e)}"
+            }

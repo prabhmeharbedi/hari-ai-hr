@@ -1,0 +1,235 @@
+"""
+Interview Scheduling Agent
+
+This module contains the implementation of the Scheduler agent,
+which generates interview invitations and scheduling information
+for shortlisted candidates.
+"""
+
+import logging
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta
+from .base_agent import BaseAgent
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+class SchedulerAgent(BaseAgent):
+    """Agent for generating interview invitations and scheduling interviews."""
+    
+    def __init__(self, model_name: str = "phi-2", provider: str = "ollama"):
+        """
+        Initialize the Scheduler agent.
+        
+        Args:
+            model_name: Name of the model to use
+            provider: Provider of the LLM ('ollama' or 'openai')
+        """
+        super().__init__(model_name=model_name, provider=provider)
+    
+    def generate_interview_invitation(self, 
+                                 job_title: str,
+                                 company_name: str,
+                                 candidate_name: str,
+                                 interview_format: str,
+                                 date_options: List[str],
+                                 duration: str = "1 hour",
+                                 special_instructions: str = "") -> Dict[str, Any]:
+        """
+        Generate an interview invitation email for a candidate.
+        
+        Args:
+            job_title: Title of the job
+            company_name: Name of the company
+            candidate_name: Name of the candidate
+            interview_format: Format of the interview (video, phone, in-person)
+            date_options: List of available date and time options
+            duration: Expected duration of the interview
+            special_instructions: Any special instructions for the candidate
+            
+        Returns:
+            Dictionary containing the generated invitation email
+        """
+        # Check if the client is available
+        if not self._check_client():
+            return {"error": True, "message": "Ollama client not available"}
+        
+        try:
+            # Create a system prompt for the interview invitation
+            system_prompt = """
+            You are an expert recruitment scheduler. Your task is to generate 
+            a professional interview invitation email for a shortlisted candidate.
+            
+            The email should be formal yet friendly, and should include all the 
+            necessary details about the interview, including:
+            1. Congratulations on being shortlisted
+            2. Job title and company name
+            3. Interview date, time, and format (video, phone, in-person)
+            4. Expected duration of the interview
+            5. Names and roles of the interviewers
+            6. Any preparation required
+            7. Contact information for questions
+            
+            Format your response as a JSON object with the following structure:
+            {
+                "subject": "string",
+                "body": "string",
+                "calendar_event": {
+                    "title": "string",
+                    "start_time": "string",
+                    "end_time": "string",
+                    "location": "string",
+                    "description": "string"
+                }
+            }
+            
+            Write in a professional tone that represents the company well.
+            """
+            
+            # Process the date options
+            date_str = ", ".join(date_options)
+            interviewer_name = "Hiring Manager"  # Default interviewer name
+            
+            # Create a user prompt with the interview details
+            user_prompt = f"""
+            Please generate a professional interview invitation email for:
+            
+            Candidate: {candidate_name}
+            Job: {job_title} at {company_name}
+            Available Dates and Times: {date_str}
+            Interview Format: {interview_format}
+            Duration: {duration}
+            Special Instructions: {special_instructions if special_instructions else "None"}
+            
+            Include all necessary details and make it professional yet warm and engaging.
+            """
+            
+            # Get the JSON response
+            result = self.get_json_response(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                temperature=0.5  # Higher temperature for more creative writing
+            )
+            
+            # Check for errors in JSON parsing
+            if "error" in result:
+                logger.error(f"Error generating invitation: {result.get('message', 'Unknown error')}")
+                return result
+            
+            # Validate the output to ensure it has the expected structure
+            required_fields = ["subject", "body"]
+            for field in required_fields:
+                if field not in result:
+                    logger.warning(f"Incomplete invitation - missing {field}")
+                    return {
+                        "error": True,
+                        "message": f"Failed to generate complete invitation (missing {field})",
+                        "partial_result": result
+                    }
+            
+            # Format the result to match the expected structure in main.py
+            formatted_result = {
+                "email_content": {
+                    "subject": result.get("subject", "Interview Invitation"),
+                    "body": result.get("body", "No email body generated")
+                },
+                "calendar_event": result.get("calendar_event", {})
+            }
+            
+            # Return the generated invitation
+            return formatted_result
+            
+        except Exception as e:
+            logger.error(f"Error in generate_interview_invitation: {str(e)}")
+            return {
+                "error": True,
+                "message": f"Failed to generate interview invitation: {str(e)}"
+            }
+    
+    def suggest_interview_slots(self, 
+                               interviewer_availability: Dict[str, List[Dict[str, str]]],
+                               candidate_preferences: Optional[Dict[str, Any]] = None,
+                               num_slots: int = 3) -> Dict[str, Any]:
+        """
+        Suggest potential interview time slots based on availability.
+        
+        Args:
+            interviewer_availability: Dictionary mapping interviewer names to their available time slots
+            candidate_preferences: Optional dictionary containing candidate time preferences
+            num_slots: Number of interview slots to suggest
+            
+        Returns:
+            Dictionary containing suggested interview slots
+        """
+        # Check if the client is available
+        if not self._check_client():
+            return {"error": True, "message": "Ollama client not available"}
+        
+        try:
+            # Create a system prompt for suggesting interview slots
+            system_prompt = """
+            You are an expert interview scheduler. Your task is to analyze the availability 
+            of interviewers and candidate preferences to suggest optimal interview time slots.
+            
+            Find time slots that work for all interviewers, taking into account the candidate's 
+            preferences if provided.
+            
+            Format your response as a JSON object with the following structure:
+            {
+                "suggested_slots": [
+                    {
+                        "date": "YYYY-MM-DD",
+                        "start_time": "HH:MM",
+                        "end_time": "HH:MM",
+                        "interviewers": ["name1", "name2", ...],
+                        "notes": "string"
+                    }
+                ],
+                "reasoning": "string"
+            }
+            
+            Be practical and realistic in your suggestions.
+            """
+            
+            # Create a user prompt with the availability information
+            user_prompt = f"""
+            Please suggest {num_slots} potential interview time slots based on the following availability:
+            
+            Interviewer Availability:
+            {interviewer_availability}
+            
+            {"Candidate Preferences: " + str(candidate_preferences) if candidate_preferences else "No specific candidate preferences provided."}
+            
+            Find time slots that work for all interviewers and align with candidate preferences if possible.
+            """
+            
+            # Get the JSON response
+            result = self.get_json_response(
+                prompt=user_prompt,
+                system_prompt=system_prompt,
+                temperature=0.2  # Lower temperature for more deterministic results
+            )
+            
+            # Check for errors in JSON parsing
+            if "error" in result:
+                logger.error(f"Error suggesting interview slots: {result.get('message', 'Unknown error')}")
+                return result
+            
+            # Validate the output to ensure it has the expected structure
+            if "suggested_slots" not in result:
+                logger.warning("Incomplete slot suggestions - missing suggested_slots")
+                return {
+                    "error": True,
+                    "message": "Failed to generate interview slot suggestions",
+                    "partial_result": result
+                }
+            
+            # Return the suggested slots
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in suggest_interview_slots: {str(e)}")
+            return {
+                "error": True,
+                "message": f"Failed to suggest interview slots: {str(e)}"
+            }

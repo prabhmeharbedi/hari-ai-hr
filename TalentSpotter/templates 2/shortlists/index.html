@@ -1,0 +1,87 @@
+{% extends "layout.html" %}
+
+{% block title %}Shortlisted Candidates - AI Recruitment System{% endblock %}
+
+{% block page_title %}Shortlisted Candidates{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">All Shortlisted Candidates</h5>
+        </div>
+        <div class="card-body">
+            {% if shortlists %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Job</th>
+                                <th>Candidate</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for shortlist in shortlists %}
+                                <tr>
+                                    <td>{{ shortlist.shortlist_id }}</td>
+                                    <td>{{ shortlist.job.job_title }}</td>
+                                    <td>{{ shortlist.candidate.name }}</td>
+                                    <td>
+                                        <span class="badge {% if shortlist.status == 'pending' %}text-bg-warning{% elif shortlist.status == 'interviewed' %}text-bg-info{% elif shortlist.status == 'hired' %}text-bg-success{% elif shortlist.status == 'rejected' %}text-bg-danger{% else %}text-bg-secondary{% endif %}">
+                                            {{ shortlist.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ shortlist.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        {% if shortlist.notes %}
+                                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ shortlist.notes }}">
+                                                {{ shortlist.notes }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">No notes</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('schedule_interview') }}?shortlist_id={{ shortlist.shortlist_id }}" class="btn btn-outline-primary {% if shortlist.status != 'pending' %}disabled{% endif %}">
+                                                <i class="bi bi-calendar-plus"></i> Schedule
+                                            </a>
+                                            <button class="btn btn-outline-success" onclick="changeStatus({{ shortlist.shortlist_id }}, 'hired')">
+                                                <i class="bi bi-check-circle"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="changeStatus({{ shortlist.shortlist_id }}, 'rejected')">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No shortlisted candidates found. Shortlist candidates from the matches page to get started.
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('matches') }}" class="btn btn-primary">
+                        <i class="bi bi-puzzle"></i> Go to Matches
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function changeStatus(shortlistId, status) {
+        // Implementation for changing shortlist status
+        alert('Changing status to ' + status + ' for shortlist ID: ' + shortlistId);
+    }
+</script>
+{% endblock %}

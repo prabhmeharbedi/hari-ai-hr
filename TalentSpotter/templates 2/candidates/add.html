@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}Add Candidate - AI Recruitment System{% endblock %}
+
+{% block page_title %}Add Candidate{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Add New Candidate</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('add_candidate') }}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" name="phone">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="total_experience" class="form-label">Total Experience (years)</label>
+                        <input type="number" class="form-control" id="total_experience" name="total_experience" min="0" max="50">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="cv_text" class="form-label">CV Text <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="cv_text" name="cv_text" rows="10" required></textarea>
+                    <div class="form-text">
+                        Paste the full text of the candidate's CV or resume. This will be analyzed by the CV Analyzer agent.
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('candidates') }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-person-plus"></i> Add Candidate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

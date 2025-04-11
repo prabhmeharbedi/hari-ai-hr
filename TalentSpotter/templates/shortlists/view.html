@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ shortlist.name }}</h2>
+        <div>
+            <a href="{{ url_for('shortlists.edit', shortlist_id=shortlist.id) }}" class="btn btn-primary me-2">Edit Shortlist</a>
+            <form method="POST" action="{{ url_for('shortlists.delete', shortlist_id=shortlist.id) }}" class="d-inline">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this shortlist?')">Delete Shortlist</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Shortlist Details</h5>
+            <p><strong>Job:</strong> {{ shortlist.job.title }} - {{ shortlist.job.department }}</p>
+            <p><strong>Created:</strong> {{ shortlist.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            {% if shortlist.notes %}
+            <p><strong>Notes:</strong> {{ shortlist.notes }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Candidates</h5>
+            {% if shortlist.candidates %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Match Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidate in shortlist.candidates %}
+                        <tr>
+                            <td>{{ candidate.name }}</td>
+                            <td>{{ candidate.email }}</td>
+                            <td>{{ candidate.phone }}</td>
+                            <td>{{ candidate.match_score }}%</td>
+                            <td>
+                                <a href="{{ url_for('candidates.view', candidate_id=candidate.id) }}" class="btn btn-sm btn-info">View</a>
+                                <form method="POST" action="{{ url_for('shortlists.remove_candidate', shortlist_id=shortlist.id, candidate_id=candidate.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to remove this candidate from the shortlist?')">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No candidates in this shortlist yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

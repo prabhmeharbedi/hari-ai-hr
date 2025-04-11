@@ -1,0 +1,132 @@
+@app.route('/api/shortlist', methods=['POST'])
+def api_shortlist():
+    """API endpoint to determine if a candidate should be shortlisted for a job"""
+    data = request.json
+    
+    if not data or 'match_id' not in data:
+        return jsonify({'error': 'No match_id provided'}), 400
+    
+    match_id = data['match_id']
+    threshold = data.get('threshold', 70.0)  # Default threshold of 70%
+    
+    # Check if the OpenAI API key is available
+    if not os.environ.get("OPENAI_API_KEY"):
+        logger.error("OpenAI API key not found in environment")
+        return jsonify({
+            'error': 'OpenAI API key not configured',
+            'message': 'Please set the OPENAI_API_KEY environment variable to use the shortlisting feature.'
+        }), 500
+    
+    try:
+        # Get the match
+        match = MatchScore.query.get(match_id)
+        
+        if not match:
+            return jsonify({'error': 'Match not found'}), 404
+        
+        # Get the job and candidate
+        job = JobDescription.query.get(match.jd_id)
+        candidate = Candidate.query.get(match.candidate_id)
+        
+        if not job or not candidate:
+            return jsonify({'error': 'Job or candidate not found'}), 404
+        
+        # Check if a shortlist already exists
+        existing_shortlist = Shortlist.query.filter_by(jd_id=match.jd_id, candidate_id=match.candidate_id).first()
+        
+        if existing_shortlist:
+            # Return the existing shortlist
+            return jsonify({
+                'shortlist_id': existing_shortlist.shortlist_id,
+                'job_id': existing_shortlist.jd_id,
+                'candidate_id': existing_shortlist.candidate_id,
+                'status': existing_shortlist.status,
+                'notes': existing_shortlist.notes,
+                'created_at': existing_shortlist.created_at.isoformat(),
+                'exists': True
+            })
+        
+        # Get the shortlister agent
+        from agents import get_shortlister
+        
+        shortlister = get_shortlister()
+        
+        if not shortlister:
+            logger.error("Failed to get Shortlister agent")
+            return jsonify({
+                'error': 'Agent initialization failed',
+                'message': 'Failed to initialize the Shortlister agent. Check the logs for details.'
+            }), 500
+        
+        # Prepare job description dict
+        job_description = {
+            'job_title': job.job_title,
+            'department': job.department,
+            'required_experience': job.required_experience,
+            'required_education': job.required_education,
+            'required_skills': job.skills_dict,
+            'job_responsibilities': job.responsibilities_list
+        }
+        
+        # Prepare match scores dict
+        match_scores = {
+            'overall_score': match.overall_score,
+            'skills_score': match.skills_score,
+            'experience_score': match.experience_score,
+            'education_score': match.education_score,
+            'certifications_score': match.certifications_score,
+            'candidate_name': candidate.name
+        }
+        
+        # Determine if the candidate should be shortlisted
+        shortlist_result = shortlister.shortlist_candidate(job_description, match_scores, threshold)
+        
+        # Check if there was an error
+        if 'error' in shortlist_result:
+            logger.error(f"Error shortlisting candidate: {shortlist_result.get('message', 'Unknown error')}")
+            return jsonify(shortlist_result), 500
+        
+        # Create a shortlist record if the decision is to shortlist
+        if shortlist_result['shortlist_decision']:
+            # Create a new shortlist record
+            notes = f"Confidence: {shortlist_result['confidence']}%. {shortlist_result['justification']}"
+            
+            new_shortlist = Shortlist(
+                jd_id=match.jd_id,
+                candidate_id=match.candidate_id,
+                status='pending',
+                notes=notes
+            )
+            
+            db.session.add(new_shortlist)
+            db.session.commit()
+            
+            # Return the shortlist details
+            return jsonify({
+                'shortlist_id': new_shortlist.shortlist_id,
+                'job_id': new_shortlist.jd_id,
+                'candidate_id': new_shortlist.candidate_id,
+                'status': new_shortlist.status,
+                'notes': new_shortlist.notes,
+                'created_at': new_shortlist.created_at.isoformat(),
+                'exists': False,
+                'details': shortlist_result,
+                'shortlisted': True
+            })
+        else:
+            # Return the shortlist decision without creating a record
+            return jsonify({
+                'job_id': match.jd_id,
+                'candidate_id': match.candidate_id,
+                'exists': False,
+                'details': shortlist_result,
+                'shortlisted': False
+            })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error in api_shortlist endpoint: {str(e)}")
+        return jsonify({
+            'error': 'Shortlisting failed',
+            'message': f'Failed to determine if candidate should be shortlisted: {str(e)}'
+        }), 500

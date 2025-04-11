@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{% if job %}Edit{% else %}Create{% endif %} Job Description</h2>
+        <a href="{{ url_for('index_jobs') }}" class="btn btn-secondary">Back to Jobs</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{% if job %}{{ url_for('edit_job', job_id=job.id) }}{% else %}{{ url_for('create_job') }}{% endif %}">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="job_title" class="form-label">Job Title</label>
+                        <input type="text" class="form-control" id="job_title" name="job_title" 
+                               value="{{ job.job_title if job else '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="department" class="form-label">Department</label>
+                        <input type="text" class="form-control" id="department" name="department" 
+                               value="{{ job.department if job else '' }}" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" 
+                               value="{{ job.location if job else '' }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="open" {% if job and job.status == 'open' %}selected{% endif %}>Open</option>
+                            <option value="closed" {% if job and job.status == 'closed' %}selected{% endif %}>Closed</option>
+                            <option value="on_hold" {% if job and job.status == 'on_hold' %}selected{% endif %}>On Hold</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Job Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required>{{ job.description if job else '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="requirements" class="form-label">Requirements</label>
+                    <textarea class="form-control" id="requirements" name="requirements" rows="5" required>{{ job.requirements if job else '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="responsibilities" class="form-label">Responsibilities</label>
+                    <textarea class="form-control" id="responsibilities" name="responsibilities" rows="5" required>{{ job.responsibilities if job else '' }}</textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="min_experience" class="form-label">Minimum Experience (years)</label>
+                        <input type="number" class="form-control" id="min_experience" name="min_experience" 
+                               value="{{ job.min_experience if job else 0 }}" min="0" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="max_experience" class="form-label">Maximum Experience (years)</label>
+                        <input type="number" class="form-control" id="max_experience" name="max_experience" 
+                               value="{{ job.max_experience if job else 0 }}" min="0" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="skills" class="form-label">Required Skills (comma-separated)</label>
+                    <input type="text" class="form-control" id="skills" name="skills" 
+                           value="{{ job.skills|join(', ') if job else '' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="qualifications" class="form-label">Qualifications</label>
+                    <textarea class="form-control" id="qualifications" name="qualifications" rows="3">{{ job.qualifications if job else '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="benefits" class="form-label">Benefits</label>
+                    <textarea class="form-control" id="benefits" name="benefits" rows="3">{{ job.benefits if job else '' }}</textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">{% if job %}Update{% else %}Create{% endif %} Job</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

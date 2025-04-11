@@ -1,0 +1,207 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings - AI Recruitment System{% endblock %}
+
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Settings Categories</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="#llm-settings" class="list-group-item list-group-item-action active">
+                            <i class="bi bi-cpu"></i> LLM Settings
+                        </a>
+                        <a href="#system-settings" class="list-group-item list-group-item-action">
+                            <i class="bi bi-gear"></i> System Settings
+                        </a>
+                        <a href="#notification-settings" class="list-group-item list-group-item-action">
+                            <i class="bi bi-bell"></i> Notification Settings
+                        </a>
+                        <a href="#user-settings" class="list-group-item list-group-item-action">
+                            <i class="bi bi-person"></i> User Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-9">
+            <div id="llm-settings" class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">LLM Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('settings') }}">
+                        <div class="mb-3">
+                            <label for="model_provider" class="form-label">Model Provider</label>
+                            <select id="model_provider" name="model_provider" class="form-select">
+                                <option value="ollama" {% if current_provider == 'ollama' %}selected{% endif %}>Ollama (Local Models)</option>
+                                <option value="openai" {% if current_provider == 'openai' %}selected{% endif %} {% if not has_openai_key %}disabled{% endif %}>
+                                    OpenAI {% if not has_openai_key %}(API Key Required){% endif %}
+                                </option>
+                            </select>
+                            <div class="form-text">
+                                Select the LLM provider to use for all agents in the system.
+                                {% if not has_openai_key %}
+                                    <div class="alert alert-warning mt-2">
+                                        <i class="bi bi-exclamation-triangle"></i> OpenAI API key not found. To use OpenAI models, set the OPENAI_API_KEY environment variable.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="model_name" class="form-label">Model Name</label>
+                            <select id="model_name" name="model_name" class="form-select">
+                                <!-- Ollama Models -->
+                                <optgroup label="Ollama Models" id="ollama-models" {% if current_provider != 'ollama' %}style="display: none;"{% endif %}>
+                                    {% for model in available_models.ollama %}
+                                        <option value="{{ model }}" {% if current_provider == 'ollama' and current_model == model %}selected{% endif %}>{{ model }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                
+                                <!-- OpenAI Models -->
+                                <optgroup label="OpenAI Models" id="openai-models" {% if current_provider != 'openai' %}style="display: none;"{% endif %}>
+                                    {% for model in available_models.openai %}
+                                        <option value="{{ model }}" {% if current_provider == 'openai' and current_model == model %}selected{% endif %}>{{ model }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                            </select>
+                            <div class="form-text">Select the specific model to use with the selected provider.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Apply Settings To</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="apply_to" id="apply_all" value="all" checked>
+                                <label class="form-check-label" for="apply_all">
+                                    All Agents
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="apply_to" id="apply_specific" value="specific">
+                                <label class="form-check-label" for="apply_specific">
+                                    Specific Agents
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="specific-agents" class="mb-3" style="display: none;">
+                            <div class="card bg-dark border">
+                                <div class="card-body">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="agents" id="jd_summarizer" value="jd_summarizer">
+                                        <label class="form-check-label" for="jd_summarizer">
+                                            JD Summarizer
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="agents" id="cv_analyzer" value="cv_analyzer">
+                                        <label class="form-check-label" for="cv_analyzer">
+                                            CV Analyzer
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="agents" id="matcher" value="matcher">
+                                        <label class="form-check-label" for="matcher">
+                                            Matcher
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="agents" id="shortlister" value="shortlister">
+                                        <label class="form-check-label" for="shortlister">
+                                            Shortlister
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="agents" id="scheduler" value="scheduler">
+                                        <label class="form-check-label" for="scheduler">
+                                            Scheduler
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="agents" id="insights_generator" value="insights_generator">
+                                        <label class="form-check-label" for="insights_generator">
+                                            Insights Generator
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div id="system-settings" class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">System Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p>System settings will be implemented in a future update.</p>
+                </div>
+            </div>
+            
+            <div id="notification-settings" class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Notification Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p>Notification settings will be implemented in a future update.</p>
+                </div>
+            </div>
+            
+            <div id="user-settings" class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">User Settings</h5>
+                </div>
+                <div class="card-body">
+                    <p>User settings will be implemented in a future update.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Show/hide provider-specific models
+    document.getElementById('model_provider').addEventListener('change', function() {
+        const provider = this.value;
+        
+        // Hide all model groups
+        document.getElementById('ollama-models').style.display = 'none';
+        document.getElementById('openai-models').style.display = 'none';
+        
+        // Show selected provider's models
+        document.getElementById(provider + '-models').style.display = 'block';
+        
+        // Select first model of the selected provider
+        const firstOption = document.querySelector('#' + provider + '-models option');
+        if (firstOption) {
+            firstOption.selected = true;
+        }
+    });
+    
+    // Show/hide specific agents section
+    document.querySelectorAll('input[name="apply_to"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            if (this.value === 'specific') {
+                document.getElementById('specific-agents').style.display = 'block';
+            } else {
+                document.getElementById('specific-agents').style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

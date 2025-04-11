@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">Edit Shortlist</h2>
+            <form method="POST" action="{{ url_for('shortlists.edit', shortlist_id=shortlist.id) }}">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Shortlist Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="{{ shortlist.name }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="job_id" class="form-label">Job</label>
+                    <select class="form-select" id="job_id" name="job_id" required>
+                        {% for job in jobs %}
+                        <option value="{{ job.id }}" {% if job.id == shortlist.job_id %}selected{% endif %}>
+                            {{ job.title }} - {{ job.department }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="3">{{ shortlist.notes }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('shortlists.view', shortlist_id=shortlist.id) }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

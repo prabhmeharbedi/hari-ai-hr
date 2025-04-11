@@ -1,0 +1,497 @@
+{% extends "layout.html" %}
+
+{% block title %}Interview Management - AI Recruitment System{% endblock %}
+
+{% block content %}
+
+{% if action == 'list' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Interviews</h1>
+        </div>
+
+        {% if interviews %}
+        <!-- Interview Calendar View -->
+        <div class="mb-4">
+            <h3 class="h5 mb-3">Upcoming Interviews</h3>
+            <div class="card bg-dark">
+                <div class="card-body p-3">
+                    <div id="interviewCalendar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interview List -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Candidate</th>
+                        <th>Job Position</th>
+                        <th>Date & Time</th>
+                        <th>Format</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for interview in interviews %}
+                    <tr>
+                        <td>{{ interview.id }}</td>
+                        <td>{{ interview.shortlist.candidate.name }}</td>
+                        <td>{{ interview.shortlist.job.title }}</td>
+                        <td>{{ interview.scheduled_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ interview.format }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if interview.status == 'completed' else 'primary' if interview.status == 'scheduled' else 'danger' if interview.status == 'cancelled' else 'warning' }}">
+                                {{ interview.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('interviews.view', interview_id=interview.id) }}" class="btn btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('interviews.edit', interview_id=interview.id) }}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-calendar-alt fa-5x mb-3 text-muted"></i>
+            <h2 class="h4 mb-3">No Interviews Scheduled</h2>
+            <p class="text-muted">Start by shortlisting candidates and scheduling interviews.</p>
+            <a href="{{ url_for('matches.index') }}" class="btn btn-primary mt-2">
+                <i class="fas fa-user-check me-2"></i>Go to Matches
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% elif action == 'schedule' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h1 class="h2 mb-4">Schedule Interview</h1>
+        
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h3 class="h5 mb-0">Candidate & Job Details</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Candidate:</strong> {{ shortlist.candidate.name }}</p>
+                        <p><strong>Email:</strong> {{ shortlist.candidate.email }}</p>
+                        {% if shortlist.candidate.phone %}
+                        <p><strong>Phone:</strong> {{ shortlist.candidate.phone }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Job Position:</strong> {{ shortlist.job.title }}</p>
+                        <p><strong>Department:</strong> {{ shortlist.job.department or 'Not specified' }}</p>
+                        <p><strong>Match Score:</strong> {{ "%.1f"|format(match_score) }}%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post" action="{{ url_for('interviews.schedule_interview', shortlist_id=shortlist.id) }}">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="scheduled_date" class="form-label">Interview Date & Time *</label>
+                    <input type="datetime-local" class="form-control" id="scheduled_date" name="scheduled_date" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="format" class="form-label">Interview Format *</label>
+                    <select class="form-select" id="format" name="format" required>
+                        <option value="">-- Select format --</option>
+                        <option value="in-person">In-person</option>
+                        <option value="video">Video Conference</option>
+                        <option value="phone">Phone</option>
+                        <option value="technical">Technical Assessment</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="special_instructions" class="form-label">Special Instructions</label>
+                <textarea class="form-control" id="special_instructions" name="special_instructions" rows="3"></textarea>
+                <div class="form-text">
+                    Any specific instructions for the candidate (e.g., bring portfolio, prepare for coding test)
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="1" id="generate_email" name="generate_email" checked>
+                    <label class="form-check-label" for="generate_email">
+                        Generate email invitation
+                    </label>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('interviews.index') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-calendar-check me-2"></i>Schedule Interview
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% elif action == 'view' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Interview Details</h1>
+            <div>
+                <a href="{{ url_for('interviews.edit', interview_id=interview.id) }}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Schedule Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Date & Time:</strong> {{ interview.scheduled_date.strftime('%A, %B %d, %Y at %I:%M %p') }}</p>
+                        <p><strong>Format:</strong> {{ interview.format }}</p>
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if interview.status == 'completed' else 'primary' if interview.status == 'scheduled' else 'danger' if interview.status == 'cancelled' else 'warning' }}">
+                                {{ interview.status }}
+                            </span>
+                        </p>
+                        <p><strong>Created:</strong> {{ interview.created_at.strftime('%Y-%m-%d') }}</p>
+                    </div>
+                </div>
+
+                <div class="card bg-dark">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Actions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            {% if interview.status == 'scheduled' %}
+                            <form method="post" action="{{ url_for('interviews.change_status', interview_id=interview.id) }}">
+                                <input type="hidden" name="status" value="completed">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-check-circle me-2"></i>Mark as Completed
+                                </button>
+                            </form>
+                            <form method="post" action="{{ url_for('interviews.change_status', interview_id=interview.id) }}">
+                                <input type="hidden" name="status" value="cancelled">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-times-circle me-2"></i>Cancel Interview
+                                </button>
+                            </form>
+                            {% elif interview.status == 'cancelled' %}
+                            <form method="post" action="{{ url_for('interviews.change_status', interview_id=interview.id) }}">
+                                <input type="hidden" name="status" value="scheduled">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-redo me-2"></i>Reschedule Interview
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-8">
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Feedback</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if interview.feedback %}
+                        <div class="mb-3">
+                            <p>{{ interview.feedback }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <form method="post" action="{{ url_for('interviews.add_feedback', interview_id=interview.id) }}">
+                            <div class="mb-3">
+                                <label for="feedback" class="form-label">{{ 'Update Feedback' if interview.feedback else 'Add Feedback' }}</label>
+                                <textarea class="form-control" id="feedback" name="feedback" rows="4">{{ interview.feedback }}</textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Feedback
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if email_content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h2 class="h3 mb-4">Generated Email</h2>
+        <div class="card bg-dark">
+            <div class="card-body">
+                <pre class="email-preview p-3 bg-dark text-white">{{ email_content }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% elif action == 'edit' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h1 class="h2 mb-4">Edit Interview</h1>
+        
+        <form method="post" action="{{ url_for('interviews.edit', interview_id=interview.id) }}">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="scheduled_date" class="form-label">Interview Date & Time *</label>
+                    <input type="datetime-local" class="form-control" id="scheduled_date" name="scheduled_date" 
+                           value="{{ interview.scheduled_date.strftime('%Y-%m-%dT%H:%M') }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="format" class="form-label">Interview Format *</label>
+                    <select class="form-select" id="format" name="format" required>
+                        <option value="">-- Select format --</option>
+                        <option value="in-person" {% if interview.format == 'in-person' %}selected{% endif %}>In-person</option>
+                        <option value="video" {% if interview.format == 'video' %}selected{% endif %}>Video Conference</option>
+                        <option value="phone" {% if interview.format == 'phone' %}selected{% endif %}>Phone</option>
+                        <option value="technical" {% if interview.format == 'technical' %}selected{% endif %}>Technical Assessment</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="status" class="form-label">Status *</label>
+                <select class="form-select" id="status" name="status" required>
+                    <option value="scheduled" {% if interview.status == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="completed" {% if interview.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if interview.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    <option value="rescheduled" {% if interview.status == 'rescheduled' %}selected{% endif %}>Rescheduled</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="feedback" class="form-label">Feedback</label>
+                <textarea class="form-control" id="feedback" name="feedback" rows="4">{{ interview.feedback }}</textarea>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('interviews.view', interview_id=interview.id) }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Update Interview
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% elif action == 'email' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Generated Email</h1>
+            <div>
+                <a href="{{ url_for('interviews.view', interview_id=interview.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Interview
+                </a>
+            </div>
+        </div>
+
+        <div class="card bg-dark mb-4">
+            <div class="card-header">
+                <h3 class="h5 mb-0">Email Preview</h3>
+            </div>
+            <div class="card-body">
+                <pre class="email-preview p-3 bg-dark text-white">{{ email_content }}</pre>
+            </div>
+        </div>
+
+        <div class="card bg-dark">
+            <div class="card-header">
+                <h3 class="h5 mb-0">Send Options</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This system doesn't currently send emails directly. Copy the email content above to send it through your email client.
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary" id="copyEmailBtn">
+                        <i class="fas fa-copy me-2"></i>Copy to Clipboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% if action == 'list' and interviews %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Calendar data (simplified version)
+        const calendarEl = document.getElementById('interviewCalendar');
+        const events = [];
+        
+        {% for interview in interviews %}
+        events.push({
+            title: '{{ interview.shortlist.candidate.name }} - {{ interview.shortlist.job.title }}',
+            start: '{{ interview.scheduled_date.strftime("%Y-%m-%dT%H:%M:%S") }}',
+            url: '{{ url_for("interviews.view", interview_id=interview.id) }}',
+            className: '{{ "bg-success" if interview.status == "completed" else "bg-primary" if interview.status == "scheduled" else "bg-danger" }}'
+        });
+        {% endfor %}
+        
+        // Simple DOM-based calendar implementation
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        // Create a table for the calendar
+        let calendarHTML = '<div class="calendar-header d-flex justify-content-between align-items-center mb-3">';
+        calendarHTML += '<h4 class="mb-0">' + new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' }) + ' ' + currentYear + '</h4>';
+        calendarHTML += '</div>';
+        
+        calendarHTML += '<table class="table table-bordered">';
+        calendarHTML += '<thead><tr>';
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        for (const day of days) {
+            calendarHTML += '<th>' + day + '</th>';
+        }
+        calendarHTML += '</tr></thead>';
+        
+        calendarHTML += '<tbody>';
+        
+        // Get the first day of the month
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        // Get the last day of the month
+        const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+        
+        let date = 1;
+        
+        // Create calendar rows
+        for (let i = 0; i < 6; i++) {
+            calendarHTML += '<tr class="text-center align-top" style="height: 120px;">';
+            
+            for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < firstDay) {
+                    calendarHTML += '<td class="text-muted">' + (new Date(currentYear, currentMonth, 0).getDate() - (firstDay - j - 1)) + '</td>';
+                }
+                else if (date > lastDate) {
+                    calendarHTML += '<td class="text-muted">' + (date - lastDate) + '</td>';
+                    date++;
+                }
+                else {
+                    calendarHTML += '<td>' + date;
+                    
+                    // Add events for this date
+                    const currentDate = new Date(currentYear, currentMonth, date).toISOString().split('T')[0];
+                    const dayEvents = events.filter(event => event.start.startsWith(currentDate));
+                    
+                    if (dayEvents.length > 0) {
+                        calendarHTML += '<div class="mt-1">';
+                        dayEvents.forEach(event => {
+                            calendarHTML += '<div class="calendar-event ' + event.className + ' text-white small p-1 rounded">';
+                            const time = event.start.split('T')[1].substring(0, 5);
+                            const title = event.title.split(' - ')[0];
+                            calendarHTML += time + ' - ' + title;
+                            calendarHTML += '</div>';
+                        });
+                        calendarHTML += '</div>';
+                    }
+                    
+                    calendarHTML += '</td>';
+                    date++;
+                }
+            }
+            
+            calendarHTML += '</tr>';
+            if (date > lastDate) {
+                break;
+            }
+        }
+        
+        calendarHTML += '</tbody></table>';
+        
+        // Set the calendar HTML
+        calendarEl.innerHTML = calendarHTML;
+    });
+</script>
+{% endif %}
+
+{% if action == 'email' %}
+<script>
+    document.getElementById('copyEmailBtn').addEventListener('click', function() {
+        const emailContent = document.querySelector('.email-preview').textContent;
+        navigator.clipboard.writeText(emailContent).then(function() {
+            alert('Email content copied to clipboard!');
+        }).catch(function(err) {
+            console.error('Failed to copy text: ', err);
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-day {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .calendar-events {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    
+    .calendar-event {
+        font-size: 0.8rem;
+        padding: 2px 5px;
+        border-radius: 3px;
+        color: white;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .more-events {
+        font-size: 0.7rem;
+        color: #aaa;
+        text-align: center;
+    }
+    
+    .email-preview {
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

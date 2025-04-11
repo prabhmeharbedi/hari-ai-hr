@@ -1,0 +1,429 @@
+Product Requirements Document: AI-Powered Recruitment System
+1. Executive Summary
+This PRD outlines the requirements for developing a multi-agent AI system that streamlines the recruitment process by automating job description analysis, candidate matching, shortlisting, and interview scheduling. The system will leverage on-premise LLMs via Ollama, custom tools, embedding models, and SQLite for long-term memory storage.
+2. Problem Statement
+Recruitment teams face significant challenges when manually reviewing numerous job descriptions and candidate CVs. This process is:
+
+Time-consuming
+Prone to human error
+Difficult to scale
+Potentially subject to unconscious bias
+
+Our solution aims to create a multi-agent AI system that automates and enhances this process while maintaining compliance with ethical guidelines.
+3. System Architecture
+3.1 Core Components
+
+Job Description Summarizer Agent
+
+Analyzes and extracts key elements from job descriptions
+Structures information about required skills, qualifications, experience, and responsibilities
+
+
+Recruiting Agent
+
+Extracts structured data from candidate CVs
+Compares CV data against job requirements
+Calculates match scores based on relevance
+
+
+Shortlisting Agent
+
+Evaluates match scores against predetermined thresholds
+Creates a ranked list of suitable candidates
+Maintains a database of shortlisted candidates
+
+
+Interview Scheduler Agent
+
+Generates personalized interview requests
+Handles interview scheduling logistics
+Communicates with shortlisted candidates via email
+
+
+
+3.2 Technical Stack
+
+LLM Infrastructure
+
+Ollama for on-premise LLM deployment
+Recommended models:
+
+TinyLlama-1.1B for lightweight tasks
+Gemma-2B for structured data processing
+Phi-2 for reasoning tasks
+Flan-T5 Small for specific NLP tasks
+DistilBERT for embeddings and classification
+
+
+
+
+Database
+
+SQLite for persistent storage and agent memory
+Schema design for storing:
+
+Job descriptions
+Candidate profiles
+Match scores
+Interview schedules
+
+
+
+
+Custom Tools
+
+APIs for integration with existing HR systems
+Web scraper (following ethical guidelines)
+ML models for specific matching algorithms
+
+
+Agent Communication Framework
+
+Multi-agent orchestration system
+Message passing protocols
+Task delegation mechanisms
+
+
+
+4. Detailed Agent Specifications
+4.1 Job Description Summarizer Agent
+Capabilities:
+
+Parse unstructured job descriptions
+Extract key information:
+
+Job title and level
+Required technical skills
+Required soft skills
+Years of experience needed
+Educational qualifications
+Certifications
+Job responsibilities
+Company information
+
+
+Structure extracted information into standardized format
+Store processed JD information in SQLite database
+
+Implementation Details:
+
+Use Ollama's Phi-2 or Gemma-2B model
+Create custom prompt templates for extraction
+Implement validation checks for extracted data
+Design database schema for JD storage
+
+4.2 Recruiting Agent
+Capabilities:
+
+Extract key information from candidate CVs:
+
+Education history
+Work experience
+Technical skills
+Soft skills
+Certifications
+Projects and achievements
+
+
+Convert unstructured CV data into standardized format
+Calculate match scores based on multiple criteria:
+
+Skills matching (technical and soft)
+Experience matching (years and relevance)
+Education matching
+Certification matching
+
+
+Generate detailed match reports
+
+Implementation Details:
+
+Use Ollama's Phi-2 model for extraction and matching
+Implement embedding-based similarity scoring using DistilBERT
+Create weighted scoring algorithm for different job criteria
+Design database schema for candidate profiles and match scores
+
+4.3 Shortlisting Agent
+Capabilities:
+
+Apply configurable threshold filters to match scores
+Rank candidates based on match scores
+Consider additional factors beyond raw match scores:
+
+Candidate availability
+Prior application history
+Internal vs. external candidates
+
+
+Generate shortlist reports for human review
+Store shortlisting decisions in database
+
+Implementation Details:
+
+Use TinyLlama-1.1B for threshold application and filtering
+Implement configurable ranking algorithms
+Design database schema for shortlisting results
+Create visualization tools for shortlist presentation
+
+4.4 Interview Scheduler Agent
+Capabilities:
+
+Generate personalized email templates for interview invitations
+Include relevant details in communications:
+
+Job position
+Interview format (in-person, video, phone)
+Potential dates and times
+Preparation instructions
+Next steps
+
+
+Track responses and update database
+Handle scheduling conflicts
+
+Implementation Details:
+
+Use Flan-T5 Small for email generation
+Implement email template system with variable substitution
+Create database schema for interview scheduling
+Design tracking system for candidate responses
+
+5. System Workflow
+
+Job Description Processing
+
+HR uploads new job description
+JD Summarizer Agent processes and extracts key information
+Structured JD data is stored in database
+HR reviews and confirms extracted information
+
+
+Candidate CV Analysis
+
+Candidate CVs are uploaded to the system
+Recruiting Agent extracts structured information
+Candidate profiles are stored in database
+System matches candidate profiles against job requirements
+Match scores are calculated and stored
+
+
+Candidate Shortlisting
+
+Shortlisting Agent applies threshold filters
+Candidates are ranked based on match scores
+Shortlist is generated and presented to HR
+HR can review, modify, and approve the shortlist
+
+
+Interview Scheduling
+
+Interview Scheduler Agent generates email invitations
+Emails are sent to shortlisted candidates
+System tracks responses and updates database
+HR is notified of confirmed interviews
+
+
+
+6. Database Schema
+6.1 Job Descriptions Table
+sqlCopyCREATE TABLE job_descriptions (
+    jd_id INTEGER PRIMARY KEY,
+    job_title TEXT NOT NULL,
+    department TEXT,
+    required_experience INTEGER,
+    required_education TEXT,
+    required_skills TEXT,
+    job_responsibilities TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'active'
+);
+6.2 Candidates Table
+sqlCopyCREATE TABLE candidates (
+    candidate_id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    education TEXT,
+    experience TEXT,
+    skills TEXT,
+    certifications TEXT,
+    cv_path TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+6.3 Match Scores Table
+sqlCopyCREATE TABLE match_scores (
+    match_id INTEGER PRIMARY KEY,
+    jd_id INTEGER,
+    candidate_id INTEGER,
+    overall_score REAL,
+    skills_score REAL,
+    experience_score REAL,
+    education_score REAL,
+    certifications_score REAL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (jd_id) REFERENCES job_descriptions (jd_id),
+    FOREIGN KEY (candidate_id) REFERENCES candidates (candidate_id)
+);
+6.4 Shortlists Table
+sqlCopyCREATE TABLE shortlists (
+    shortlist_id INTEGER PRIMARY KEY,
+    jd_id INTEGER,
+    candidate_id INTEGER,
+    status TEXT DEFAULT 'pending',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (jd_id) REFERENCES job_descriptions (jd_id),
+    FOREIGN KEY (candidate_id) REFERENCES candidates (candidate_id)
+);
+6.5 Interviews Table
+sqlCopyCREATE TABLE interviews (
+    interview_id INTEGER PRIMARY KEY,
+    shortlist_id INTEGER,
+    scheduled_date DATETIME,
+    format TEXT,
+    status TEXT DEFAULT 'scheduled',
+    feedback TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (shortlist_id) REFERENCES shortlists (shortlist_id)
+);
+7. Implementation Plan
+7.1 Phase 1: Core Infrastructure Setup
+
+Set up Ollama environment with required models
+Create SQLite database with schema
+Implement basic agent framework
+Develop communication protocols between agents
+
+7.2 Phase 2: Individual Agent Development
+
+Develop and test Job Description Summarizer Agent
+Develop and test Recruiting Agent
+Develop and test Shortlisting Agent
+Develop and test Interview Scheduler Agent
+
+7.3 Phase 3: Integration and Testing
+
+Integrate all agents within the framework
+Conduct end-to-end system testing
+Optimize performance and accuracy
+Perform security and privacy compliance checks
+
+7.4 Phase 4: UI Development and Deployment
+
+Create user interface for HR interaction
+Implement dashboards for monitoring
+Deploy system for production use
+Train HR team on system usage
+
+8. Ethical Considerations
+8.1 Privacy and Data Protection
+
+All candidate data must be encrypted and secured
+Personal information should be anonymized where possible
+System must comply with GDPR, CCPA, and other relevant regulations
+Implemented data retention policies with automatic purging
+
+8.2 Bias Mitigation
+
+Regular audits of matching algorithms for bias
+Diverse training data for LLMs
+Human oversight of shortlisting decisions
+Transparency in match scoring criteria
+
+8.3 Web Scraping Guidelines
+
+Respect website Terms of Service
+Adhere to robots.txt directives
+Implement reasonable request frequencies
+Avoid scraping copyrighted content
+Anonymize any scraped personal data
+
+9. Metrics and Evaluation
+9.1 System Performance Metrics
+
+Processing time per job description
+Processing time per CV
+Matching accuracy (validated by HR)
+System uptime and reliability
+
+9.2 Recruitment Process Metrics
+
+Time-to-hire reduction
+Quality of hire improvement
+Recruiter productivity increase
+Candidate experience enhancement
+
+10. Future Enhancements
+10.1 Advanced Features
+
+Integration with video interview platforms
+Candidate feedback collection and analysis
+Predictive analytics for hiring success
+Automated reference checking
+
+10.2 Technical Improvements
+
+Migration to more powerful LLMs as they become available
+Integration with external HRIS systems
+Mobile application for HR users
+Advanced visualization dashboards
+
+11. Deliverables
+As requested in the project brief, the final deliverables will include:
+
+Agent interaction design documentation
+Technical approach slides
+Code structure documentation
+Demo video
+Final presentation including:
+
+Problem statement recap
+Final approach explanation
+Team introduction
+Solution overview
+Benefits and impact analysis
+
+
+
+12. Code Structure
+Copy/recruitment-ai/
+├── agents/
+│   ├── jd_summarizer.py
+│   ├── recruiter.py
+│   ├── shortlister.py
+│   ├── scheduler.py
+│   └── agent_utils.py
+├── database/
+│   ├── db_init.py
+│   ├── db_operations.py
+│   └── schema.sql
+├── models/
+│   ├── model_loader.py
+│   ├── embedding_utils.py
+│   └── inference.py
+├── api/
+│   ├── main.py
+│   ├── routes/
+│   │   ├── jobs.py
+│   │   ├── candidates.py
+│   │   ├── matches.py
+│   │   └── interviews.py
+│   └── middleware/
+│       └── auth.py
+├── ui/
+│   ├── dashboard/
+│   ├── job_management/
+│   ├── candidate_management/
+│   └── interview_scheduling/
+├── utils/
+│   ├── parsers.py
+│   ├── scoring.py
+│   ├── email_templates.py
+│   └── config.py
+├── tests/
+│   ├── test_agents.py
+│   ├── test_db.py
+│   ├── test_api.py
+│   └── test_end_to_end.py
+├── config.yaml
+└── main.py

@@ -1,0 +1,329 @@
+{% extends "layout.html" %}
+
+{% block title %}Job Management - AI Recruitment System{% endblock %}
+
+{% block content %}
+
+{% if action == 'list' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">Job Descriptions</h1>
+            <a href="{{ url_for('jobs.add_job') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Add New Job
+            </a>
+        </div>
+
+        {% if jobs %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Job Title</th>
+                        <th>Department</th>
+                        <th>Experience</th>
+                        <th>Date Added</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in jobs %}
+                    <tr>
+                        <td>{{ job.jd_id }}</td>
+                        <td>{{ job.job_title }}</td>
+                        <td>{{ job.department or 'N/A' }}</td>
+                        <td>{{ job.required_experience }} years</td>
+                        <td>{{ job.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if job.status == 'active' else 'secondary' }}">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('jobs.view_job', job_id=job.jd_id) }}" class="btn btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('matches.match_for_job', job_id=job.jd_id) }}" class="btn btn-success">
+                                    <i class="fas fa-user-check"></i>
+                                </a>
+                                <a href="{{ url_for('jobs.edit_job', job_id=job.jd_id) }}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-briefcase fa-5x mb-3 text-muted"></i>
+            <h2 class="h4 mb-3">No Job Descriptions Found</h2>
+            <p class="text-muted">Get started by adding your first job description.</p>
+            <a href="{{ url_for('jobs.add_job') }}" class="btn btn-primary mt-2">
+                <i class="fas fa-plus-circle me-2"></i>Add New Job
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% elif action == 'add' or action == 'edit' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <h1 class="h2 mb-4">{{ 'Add New Job' if action == 'add' else 'Edit Job' }}</h1>
+        
+        <form method="post" action="{{ url_for('jobs.add_job') if action == 'add' else url_for('jobs.edit_job', job_id=job.jd_id) }}">
+            <div class="mb-3">
+                <label for="job_title" class="form-label">Job Title *</label>
+                <input type="text" class="form-control" id="job_title" name="job_title" 
+                    value="{{ job.job_title if job else '' }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="department" class="form-label">Department</label>
+                <input type="text" class="form-control" id="department" name="department"
+                    value="{{ job.department if job else '' }}">
+            </div>
+            
+            <div class="mb-3">
+                <label for="required_experience" class="form-label">Required Experience (years)</label>
+                <input type="number" class="form-control" id="required_experience" name="required_experience" min="0"
+                    value="{{ job.required_experience if job else '0' }}">
+            </div>
+            
+            <div class="mb-3">
+                <label for="required_education" class="form-label">Required Education</label>
+                <input type="text" class="form-control" id="required_education" name="required_education"
+                    value="{{ job.required_education if job else '' }}">
+            </div>
+            
+            <div class="mb-3">
+                <label for="job_description" class="form-label">Full Job Description *</label>
+                <textarea class="form-control" id="job_description" name="job_description" rows="10" required>{{ job.job_responsibilities if job else '' }}</textarea>
+                <div class="form-text">
+                    Include all details about the position. Our AI will extract key requirements.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select class="form-select" id="status" name="status">
+                    <option value="active" {% if job and job.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if job and job.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="filled" {% if job and job.status == 'filled' %}selected{% endif %}>Filled</option>
+                </select>
+            </div>
+            
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('jobs.job_list') }}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {{ 'Add Job' if action == 'add' else 'Update Job' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% elif action == 'view' %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2 mb-0">{{ job.job_title }}</h1>
+            <div>
+                <a href="{{ url_for('matches.match_for_job', job_id=job.jd_id) }}" class="btn btn-success me-2">
+                    <i class="fas fa-user-check me-2"></i>Find Matches
+                </a>
+                <a href="{{ url_for('jobs.edit_job', job_id=job.jd_id) }}" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-4">
+                    <h3 class="h5">Job Details</h3>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th style="width: 180px;">Department</th>
+                                <td>{{ job.department or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Required Experience</th>
+                                <td>{{ job.required_experience }} years</td>
+                            </tr>
+                            <tr>
+                                <th>Required Education</th>
+                                <td>{{ job.required_education or 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Status</th>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if job.status == 'active' else 'secondary' }}">
+                                        {{ job.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Date Added</th>
+                                <td>{{ job.created_at.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="h5">Job Responsibilities</h3>
+                    <div class="job-description">
+                        {% if job.job_responsibilities %}
+                            {% if '<' in job.job_responsibilities and '>' in job.job_responsibilities %}
+                                {{ job.job_responsibilities|safe }}
+                            {% else %}
+                                <p>{{ job.job_responsibilities|replace('\n', '<br>')|safe }}</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No job responsibilities specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card bg-dark mb-4">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Required Skills</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if job.required_skills %}
+                            {% if job.required_skills is string %}
+                                <p>{{ job.required_skills }}</p>
+                            {% else %}
+                                <h4 class="h6">Technical Skills</h4>
+                                {% if job.required_skills.technical_skills %}
+                                    <div class="mb-3">
+                                        {% for skill in job.required_skills.technical_skills %}
+                                            <span class="badge bg-primary me-2 mb-2">{{ skill }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No technical skills specified</p>
+                                {% endif %}
+
+                                <h4 class="h6">Soft Skills</h4>
+                                {% if job.required_skills.soft_skills %}
+                                    <div>
+                                        {% for skill in job.required_skills.soft_skills %}
+                                            <span class="badge bg-info me-2 mb-2">{{ skill }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted">No soft skills specified</p>
+                                {% endif %}
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">No skills specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card bg-dark">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">Match Statistics</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if match_stats %}
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <h4 class="h2 mb-0">{{ match_stats.total_candidates }}</h4>
+                                    <p class="text-muted mb-0">Total Candidates</p>
+                                </div>
+                                <div>
+                                    <h4 class="h2 mb-0">{{ match_stats.shortlisted }}</h4>
+                                    <p class="text-muted mb-0">Shortlisted</p>
+                                </div>
+                            </div>
+                            
+                            <div class="progress mb-3" style="height: 10px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                    style="width: {{ match_stats.avg_match_score }}%;" 
+                                    aria-valuenow="{{ match_stats.avg_match_score }}" 
+                                    aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-0">Average Match Score: {{ match_stats.avg_match_score }}%</p>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <p class="mb-3 text-muted">No matches processed yet</p>
+                                <a href="{{ url_for('matches.match_for_job', job_id=job.jd_id) }}" class="btn btn-sm btn-success">
+                                    Find Matches Now
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if shortlisted_candidates %}
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h2 class="h3 mb-4">Shortlisted Candidates</h2>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Match Score</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in shortlisted_candidates %}
+                    <tr>
+                        <td>{{ candidate.name }}</td>
+                        <td>
+                            <div class="progress" style="height: 6px; width: 100px;">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                    style="width: {{ candidate.overall_score }}%;" 
+                                    aria-valuenow="{{ candidate.overall_score }}" 
+                                    aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <span class="small">{{ "%.1f"|format(candidate.overall_score) }}%</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if candidate.status == 'accepted' else 'warning' if candidate.status == 'pending' else 'danger' }}">
+                                {{ candidate.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('candidates.view', candidate_id=candidate.id) }}" class="btn btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('interviews.schedule_interview', shortlist_id=candidate.shortlist.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "layout.html" %}
+
+{% block title %}Generate Matches - AI Recruitment System{% endblock %}
+
+{% block page_title %}Generate Matches{% endblock %}
+
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Generate Job-Candidate Matches</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{{ url_for('generate_matches') }}">
+                <div class="mb-4">
+                    <label class="form-label">Select Jobs</label>
+                    <div class="card bg-dark border mb-3">
+                        <div class="card-body">
+                            {% if jobs %}
+                                {% for job in jobs %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" name="job_ids" value="{{ job.jd_id }}" id="job-{{ job.jd_id }}">
+                                        <label class="form-check-label" for="job-{{ job.jd_id }}">
+                                            {{ job.job_title }} ({{ job.department }})
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle"></i> No active jobs found. Please add jobs first.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <label class="form-label">Select Candidates</label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="selectAllCandidates">
+                            <label class="form-check-label" for="selectAllCandidates">Select All</label>
+                        </div>
+                    </div>
+                    <div class="card bg-dark border">
+                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                            {% if candidates %}
+                                {% for candidate in candidates %}
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input candidate-checkbox" type="checkbox" name="candidate_ids" value="{{ candidate.candidate_id }}" id="candidate-{{ candidate.candidate_id }}">
+                                        <label class="form-check-label" for="candidate-{{ candidate.candidate_id }}">
+                                            {{ candidate.name }} ({{ candidate.email }})
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info mb-0">
+                                    <i class="bi bi-info-circle"></i> No candidates found. Please add candidates first.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <a href="{{ url_for('matches') }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary" {% if not jobs or not candidates %}disabled{% endif %}>
+                        <i class="bi bi-magic"></i> Generate Matches
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle all candidate checkboxes
+    const selectAllCandidates = document.getElementById('selectAllCandidates');
+    const candidateCheckboxes = document.querySelectorAll('.candidate-checkbox');
+    
+    selectAllCandidates.addEventListener('change', function() {
+        const isChecked = this.checked;
+        candidateCheckboxes.forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+    });
+</script>
+{% endblock %}

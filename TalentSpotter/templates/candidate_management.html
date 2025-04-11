@@ -1,0 +1,434 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    {% if action == 'list' %}
+        Candidates - AI Recruiter
+    {% elif action == 'add' %}
+        Add Candidate - AI Recruiter
+    {% elif action == 'edit' %}
+        Edit Candidate - AI Recruiter
+    {% elif action == 'view' %}
+        View Candidate - AI Recruiter
+    {% elif action == 'bulk_upload' %}
+        Bulk Upload Candidates - AI Recruiter
+    {% endif %}
+{% endblock %}
+
+{% block header_title %}
+    {% if action == 'list' %}
+        Candidate Management
+    {% elif action == 'add' %}
+        Add New Candidate
+    {% elif action == 'edit' %}
+        Edit Candidate
+    {% elif action == 'view' %}
+        Candidate Details
+    {% elif action == 'bulk_upload' %}
+        Bulk Upload Candidates
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if action == 'list' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">Candidate Management</h4>
+            <div>
+                <a href="{{ url_for('candidates.add_candidate') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-plus me-1"></i> Add Candidate
+                </a>
+                <a href="{{ url_for('candidates.bulk_upload') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-upload me-1"></i> Bulk Upload
+                </a>
+            </div>
+        </div>
+
+        <!-- Search and filter -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search candidates...">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select">
+                    <option value="">Filter by skill</option>
+                    <option value="python">Python</option>
+                    <option value="java">Java</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="react">React</option>
+                    <option value="angular">Angular</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-select">
+                    <option value="">Filter by experience</option>
+                    <option value="0-2">0-2 years</option>
+                    <option value="3-5">3-5 years</option>
+                    <option value="5-10">5-10 years</option>
+                    <option value="10+">10+ years</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Candidates table -->
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Skills</th>
+                        <th>Experience</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar rounded-circle bg-primary me-2" style="width: 32px; height: 32px;">
+                                    <span class="d-flex align-items-center justify-content-center h-100 text-white fw-bold">
+                                        {{ candidate.name[:1] }}
+                                    </span>
+                                </div>
+                                <div>{{ candidate.name }}</div>
+                            </div>
+                        </td>
+                        <td>{{ candidate.email }}</td>
+                        <td>
+                            {% if candidate.skills %}
+                                {% set skills = candidate.skills.split(',')[:3] %}
+                                {% for skill in skills %}
+                                    <span class="badge bg-secondary">{{ skill.strip() }}</span>
+                                {% endfor %}
+                                {% if candidate.skills.split(',')|length > 3 %}
+                                    <span class="badge bg-light text-dark">+{{ candidate.skills.split(',')|length - 3 }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">None specified</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ candidate.experience or 'Not specified' }}</td>
+                        <td>
+                            {% if candidate.jobs|length > 0 %}
+                                <span class="status-badge status-active">Matched</span>
+                            {% else %}
+                                <span class="status-badge status-inactive">Not Matched</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('candidates.view_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('candidates.edit_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('matches.match_for_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-chart-bar"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-muted small">
+                Showing <strong>1</strong> to <strong>{{ candidates|length }}</strong> of <strong>{{ candidates|length }}</strong> candidates
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    {% elif action == 'add' or action == 'edit' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">{{ 'Add New Candidate' if action == 'add' else 'Edit Candidate' }}</h4>
+            <a href="{{ url_for('candidates.candidate_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Candidates
+            </a>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ candidate.name if candidate else '' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ candidate.email if candidate else '' }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="text" class="form-control" id="phone" name="phone" value="{{ candidate.phone if candidate else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="cv_file" class="form-label">CV File {{ '(Upload to replace current CV)' if action == 'edit' else '' }}</label>
+                        <input type="file" class="form-control" id="cv_file" name="cv_file" accept=".pdf,.doc,.docx">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="education" class="form-label">Education</label>
+                        <textarea class="form-control" id="education" name="education" rows="3">{{ candidate.education if candidate else '' }}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="experience" class="form-label">Experience</label>
+                        <textarea class="form-control" id="experience" name="experience" rows="3">{{ candidate.experience if candidate else '' }}</textarea>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="skills" class="form-label">Skills (comma separated)</label>
+                        <input type="text" class="form-control" id="skills" name="skills" value="{{ candidate.skills if candidate else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="certifications" class="form-label">Certifications (comma separated)</label>
+                        <input type="text" class="form-control" id="certifications" name="certifications" value="{{ candidate.certifications if candidate else '' }}">
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="mb-3">
+                        <label for="cv_text" class="form-label">CV Text (extracted from CV upload)</label>
+                        <textarea class="form-control" id="cv_text" name="cv_text" rows="5">{{ candidate.cv_text if candidate else '' }}</textarea>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{{ 'Save Candidate' if action == 'add' else 'Update Candidate' }}
+                    </button>
+                    <a href="{{ url_for('candidates.candidate_list') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </form>
+    </div>
+    {% elif action == 'view' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">Candidate Details</h4>
+            <div>
+                <a href="{{ url_for('candidates.edit_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-primary me-2">
+                    <i class="fas fa-edit me-1"></i> Edit
+                </a>
+                <a href="{{ url_for('candidates.candidate_list') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4 bg-dark">
+                    <div class="card-body text-center">
+                        <div class="avatar rounded-circle bg-primary mx-auto mb-3" style="width: 100px; height: 100px;">
+                            <span class="d-flex align-items-center justify-content-center h-100 text-white fw-bold" style="font-size: 3rem;">
+                                {{ candidate.name[:1] }}
+                            </span>
+                        </div>
+                        <h4 class="mb-1">{{ candidate.name }}</h4>
+                        <p class="text-secondary">{{ candidate.email }}</p>
+                        <p class="mb-4">{{ candidate.phone or 'No phone number' }}</p>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('matches.match_for_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-primary">
+                                <i class="fas fa-chart-bar me-2"></i>View Matches
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-4 bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Skills</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if candidate.skills %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for skill in candidate.skills.split(',') %}
+                                    <span class="badge bg-primary">{{ skill.strip() }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No skills specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Certifications</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if candidate.certifications %}
+                            <ul class="list-group list-group-flush">
+                                {% for cert in candidate.certifications.split(',') %}
+                                    <li class="list-group-item bg-transparent text-white border-secondary">{{ cert.strip() }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted">No certifications specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card mb-4 bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Match History</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if candidate.jobs %}
+                            <div class="table-responsive">
+                                <table class="table table-dark table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Job Title</th>
+                                            <th>Match Score</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for match in candidate.jobs %}
+                                            <tr>
+                                                <td>{{ match.job.job_title }}</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="progress flex-grow-1 me-2" style="height: 6px;">
+                                                            <div class="progress-bar {% if match.overall_score >= 75 %}bg-success{% elif match.overall_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}" role="progressbar" style="width: {{ match.overall_score }}%"></div>
+                                                        </div>
+                                                        <span class="fw-semibold">{{ match.overall_score|round(1) }}%</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    {% set shortlisted = false %}
+                                                    {% for shortlist in candidate.shortlists %}
+                                                        {% if shortlist.jd_id == match.jd_id %}
+                                                            {% set shortlisted = true %}
+                                                            <span class="status-badge status-active">Shortlisted</span>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    {% if not shortlisted %}
+                                                        <span class="status-badge status-inactive">Not Shortlisted</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="{{ url_for('matches.match_detail', job_id=match.jd_id, candidate_id=candidate.candidate_id) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-chart-bar me-1"></i>Details
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No matches found for this candidate</p>
+                            <a href="{{ url_for('matches.match_for_candidate', candidate_id=candidate.candidate_id) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-chart-bar me-1"></i>Find Matches
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card mb-4 bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Education</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if candidate.education %}
+                            <p>{{ candidate.education|nl2br }}</p>
+                        {% else %}
+                            <p class="text-muted">No education details specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card bg-dark">
+                    <div class="card-header">
+                        <h5 class="m-0">Experience</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if candidate.experience %}
+                            <p>{{ candidate.experience|nl2br }}</p>
+                        {% else %}
+                            <p class="text-muted">No experience details specified</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif action == 'bulk_upload' %}
+    <div class="dashboard-card mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="m-0">Bulk Upload Candidates</h4>
+            <a href="{{ url_for('candidates.candidate_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Candidates
+            </a>
+        </div>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>CSV Format:</strong> The CSV file should have the following columns:<br>
+            <span class="ms-4">Name, Email, Phone, Education, Experience, Skills, Certifications, CV Text</span><br>
+            <span class="ms-4">Only Name and Email are required. Other fields are optional.</span>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="mb-4">
+            <div class="mb-3">
+                <label for="csv_file" class="form-label">CSV File <span class="text-danger">*</span></label>
+                <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Upload and Process Candidates
+                </button>
+            </div>
+        </form>
+
+        <div class="card bg-dark border-0">
+            <div class="card-body">
+                <h5 class="card-title">Sample CSV Format</h5>
+                <pre class="mb-0">Name,Email,Phone,Education,Experience,Skills,Certifications,CV Text
+John Smith,john@example.com,123-456-7890,,,,,Lorem ipsum...
+Jane Doe,jane@example.com,987-654-3210,,,,,Lorem ipsum...</pre>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
