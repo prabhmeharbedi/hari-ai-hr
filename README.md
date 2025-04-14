@@ -1,1 +1,1 @@
-# gfg-hackathon-genai
+# hari-ai-hr
